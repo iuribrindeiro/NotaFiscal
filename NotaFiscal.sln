@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "NotaFiscal.Domain", "NotaFiscal.Domain\NotaFiscal.Domain.fsproj", "{5A0069E4-FB8D-4915-9C5F-73A204BB9978}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NotaFiscal.WebApplication", "NotaFiscal.Application\NotaFiscal.WebApplication.fsproj", "{7000639D-6B00-4C33-9AA7-5810A974EA14}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NotaFiscal.JobApplication", "NotaFiscal.JobApplication\NotaFiscal.JobApplication.fsproj", "{16F5888F-BF82-4B25-BF7D-1466DD5E7CD1}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NotaFiscal.Data", "NotaFiscal.Data\NotaFiscal.Data.fsproj", "{E80B4C19-7EEC-408E-863F-CE84F458A625}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A0069E4-FB8D-4915-9C5F-73A204BB9978}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A0069E4-FB8D-4915-9C5F-73A204BB9978}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A0069E4-FB8D-4915-9C5F-73A204BB9978}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A0069E4-FB8D-4915-9C5F-73A204BB9978}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7000639D-6B00-4C33-9AA7-5810A974EA14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7000639D-6B00-4C33-9AA7-5810A974EA14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7000639D-6B00-4C33-9AA7-5810A974EA14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7000639D-6B00-4C33-9AA7-5810A974EA14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16F5888F-BF82-4B25-BF7D-1466DD5E7CD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16F5888F-BF82-4B25-BF7D-1466DD5E7CD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16F5888F-BF82-4B25-BF7D-1466DD5E7CD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16F5888F-BF82-4B25-BF7D-1466DD5E7CD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E80B4C19-7EEC-408E-863F-CE84F458A625}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E80B4C19-7EEC-408E-863F-CE84F458A625}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E80B4C19-7EEC-408E-863F-CE84F458A625}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E80B4C19-7EEC-408E-863F-CE84F458A625}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {ACCFBC52-57FB-478A-92A2-6D77D04D4C96}
+	EndGlobalSection
+EndGlobal
