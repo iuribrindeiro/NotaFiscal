@@ -1,57 +1,16 @@
-﻿module NotaFiscalServico
+﻿module NotaFiscal.Domain.NotaFiscalServico
 
 open System
 
 [<Measure>]
 type percentage
 
-
-type NotaFiscalServico =
-    | Pendente of DadosNotaFiscalServico
-    | AguardandoAutorizacao of NotaEnviada
-    | Autorizada of NotaAutorizada
-    | Erro of NotaErro
-    | Cancelada of NotaCancelada
-
-and NotaEnviada = DadosNotaFiscalServico * DataEmissao * Rps
-and NotaAutorizada = NotaEnviada * NumeroNota
-and NotaErro = NotaEnviada * MensagemRetorno list
-and NotaCancelada = NotaAutorizada * CodigoCancelamento
-
-and DadosNotaFiscalServico =
-    { Id: Guid
-      DataCriacao: DateTime
-      DataAlteracao: DateTime option
-      Prestador: Prestador
-      Tomador: Tomador
-      Servico: Servico }
-
-and CodigoCancelamento = string
-
-and DataEmissao = DateTime
-
-and NumeroNota = string
-
-and NumeroLote = string
-
-and CodigoMensagemAlerta = string
-
-and DadosMensagemRetorno =
-    { Rps: Rps
-      CodigoMensagemAlerta: CodigoMensagemAlerta
-      Mensagem: string }
-
-and Correcao = string
-
-and MensagemRetorno =
-    | Sucesso of DadosMensagemRetorno
-    | Falha of DadosMensagemRetorno * Correcao
-
-
 and InscricaoMunicipal = int
 
+type Cnpj = string
+
 and Prestador =
-    { Cnpj: string
+    { Cnpj: Cnpj
       InscricaoMunicipal: InscricaoMunicipal option }
 
 and Contato = { Telefone: string; Email: string }
@@ -184,6 +143,47 @@ and Valores =
       DescontoIncondicionado: decimal option
       Aliquota: float<percentage> option
       ValorLiquidoNfse: decimal option }
+    
+type NotaFiscalServico =
+    | Pendente of DadosNotaFiscalServico
+    | AguardandoAutorizacao of NotaEnviada
+    | Autorizada of NotaAutorizada
+    | Erro of NotaErro
+    | Cancelada of NotaCancelada
+
+and CodigoCancelamento = string
+
+and DataEmissao = DateTime
+
+and NumeroNota = string
+
+and NumeroLote = string
+
+and CodigoMensagemAlerta = string
+
+and DadosMensagemRetorno =
+    { Rps: Rps
+      CodigoMensagemAlerta: CodigoMensagemAlerta
+      Mensagem: string }
+
+and Correcao = string
+
+and MensagemRetorno =
+    | Sucesso of DadosMensagemRetorno
+    | Falha of DadosMensagemRetorno * Correcao
+    
+and NotaEnviada = DadosNotaFiscalServico * DataEmissao * Rps
+and NotaAutorizada = NotaEnviada * NumeroNota
+and NotaErro = NotaEnviada * MensagemRetorno list
+and NotaCancelada = NotaAutorizada * CodigoCancelamento
+
+and DadosNotaFiscalServico =
+    { Id: Guid
+      DataCriacao: DateTime
+      DataAlteracao: DateTime option
+      Prestador: Prestador
+      Tomador: Tomador
+      Servico: Servico }
 
 
 //Esses mappers possivelmente serao movidos para o projeto de integracao com as prefeituras

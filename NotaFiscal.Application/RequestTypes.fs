@@ -1,7 +1,7 @@
 ﻿module RequestTypes
 
 open System
-open NotaFiscalServico
+open NotaFiscal.Domain.NotaFiscalServico
 
 type DadosNotaFiscalServicoViewModel =
     { Id: Guid option
@@ -20,13 +20,13 @@ and ContatoViewModel =
       Email: string option }
 
 and EnderecoViewModel =
-    { Rua: Rua option
-      Numero: Numero option
+    { Rua: Rua
+      Numero: Numero
       Complemento: Complemento
-      Bairro: Bairro option
-      CodigoMunicipio: CodigoMunicipio option
-      UF: string option
-      Cep: Cep option }
+      Bairro: Bairro
+      CodigoMunicipio: CodigoMunicipio
+      UF: string
+      Cep: Cep }
 
 
 and TipoPessoa =
