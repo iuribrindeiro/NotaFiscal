@@ -3,9 +3,11 @@
 open System
 open System.Text.RegularExpressions
 open NotaFiscal.Domain.NotaFiscalServico
+open FsToolkit.ErrorHandling
+open System.ComponentModel.DataAnnotations
 
-type FieldName = string
-type Input<'value> = (FieldName * 'value)
+type name = string
+type Input<'value> = (name * 'value)
 type ValidationResult<'valueInput, 'valueResult> = Result<Input<'valueResult>, Input<'valueInput> * string list>
 let mapOkResult (_: string, value: 'a) = value
 
@@ -14,59 +16,76 @@ let mapOptionalResult (input: Input<'value> option) =
     | Some(_, value) -> Some value
     | None -> None
 
+let emptyFieldErrorMsg name =
+    sprintf "O campo %s não pode ser vázio" name
 
-let field (fieldName: string) (value: 'a) : string * 'a = (fieldName, value)
+let field (name: string) (value: 'a) : string * 'a = (name, value)
+
+let validateOptional (value: 'a option) (validation: 'a -> Result<'b, 'c>) =
+    value |> Option.traverseResult validation
+
+let isNotEmptyInt (name, value) =
+    if (value = 0) then
+        Error((name, value), [ emptyFieldErrorMsg name ])
+    else
+        Ok(name, value)
 
 let isEmptyString = String.IsNullOrWhiteSpace
 let isNotEmptyStr value = not (isEmptyString value)
 
-let isNotEmptyString (fieldName: string, value: string) =
-    let errMsg = sprintf "O campo %s não pode ser vázio" fieldName
+let isNotEmptyString (name: string, value: string) =
 
     if isEmptyString value then
-        Error((fieldName, value), [ errMsg ])
+        Error((name, value), [ emptyFieldErrorMsg name ])
     else
-        Ok(fieldName, value)
+        Ok(name, value)
 
-let hasMaxLen (len: int) (fieldName: string, value: string) : ValidationResult<string, string> =
-    let errMsg = sprintf "O campo %s deve ter no máximo %d caracteres" fieldName len
+let hasMaxLen (len: int) (name: string, value: string) : ValidationResult<string, string> =
+    let errMsg = sprintf "O campo %s deve ter no máximo %d caracteres" name len
 
     if (isNotEmptyStr value) && String.length value > len then
-        Error((fieldName, value), [ errMsg ])
+        Error((name, value), [ errMsg ])
     else
-        Ok(fieldName, value)
+        Ok(name, value)
 
-let hasStringLen (len: int) (fieldName: string, value: string) : ValidationResult<string, string> =
-    let errMsg = sprintf "O campo %s deve ter %d carácteres" fieldName len
+let hasStringLen (len: int) (name: string, value: string) : ValidationResult<string, string> =
+    let errMsg = sprintf "O campo %s deve ter %d carácteres" name len
 
     if String.length value <> len then
-        Error((fieldName, value), [ errMsg ])
+        Error((name, value), [ errMsg ])
     else
-        Ok(fieldName, value)
+        Ok(name, value)
 
-let isUf (fieldName: string, value: string) : ValidationResult<string, UF> =
-    let errMsg = sprintf "O campo %s deve ser uma UF válida" fieldName
+let isUf (name: string, value: string) : ValidationResult<string, UF> =
+    let errMsg = sprintf "O campo %s deve ser uma UF válida" name
 
     match ufFromString value with
-    | Some uf -> Ok(fieldName, uf)
-    | None -> Error((fieldName, value), [ errMsg ])
+    | Some uf -> Ok(name, uf)
+    | None -> Error((name, value), [ errMsg ])
 
 
+let isValidEmail (name: string, value: string) =
+    let emailRegex = Regex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$")
 
-let isValidCpf (fieldName: string, value: string) =
+    if emailRegex.IsMatch value then
+        Ok(name, value)
+    else
+        Error((name, value), [ sprintf "O %s informado não é válido" name ])
+
+
+let isValidCpf (name: string, value: string) =
     let cpfRegex = Regex(@"^\d{3}\.\d{3}\.\d{3}-\d{2}$")
 
     if cpfRegex.IsMatch value then
-        Ok value
+        Ok(name, value)
     else
-        Error [ sprintf "O %s informado não é válido" fieldName ]
+        Error((name, value), [ sprintf "O %s informado não é válido" name ])
 
 
-let validarCnpj (fieldName: string, value: string) : ValidationResult<string, string> =
+let isValidCnpj (name: string, value: string) : ValidationResult<string, string> =
     let cnpjNumeros = Regex.Replace(value, "\\D", "")
 
-    let error =
-        (Error((fieldName, value), [ sprintf "O %s informado não é válido" fieldName ]))
+    let error = (Error((name, value), [ sprintf "O %s informado não é válido" name ]))
 
     match cnpjNumeros with
     | s when String.length s <> 14 -> error
@@ -86,6 +105,6 @@ let validarCnpj (fieldName: string, value: string) : ValidationResult<string, st
             digito1 = int (cnpjNumeros.[12].ToString())
             && digito2 = int (cnpjNumeros.[13].ToString())
         then
-            Ok(fieldName, value)
+            Ok(name, value)
         else
             error

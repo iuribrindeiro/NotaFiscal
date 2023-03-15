@@ -8,6 +8,8 @@
     <Compile Include="Validations\ValidationUtils.fs" />
     <Compile Include="Validations\ValidationOperators.fs" />
     <Compile Include="Validations\Endereco\EnderecoValidation.fs" />
+    <Compile Include="Validations\Tomador\TomadorValidation.fs" />
+    <Compile Include="Validations\Prestador\PrestadorValidation.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FsToolkit.ErrorHandling" Version="4.4.0" />

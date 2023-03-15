@@ -5,9 +5,29 @@ open System
 [<Measure>]
 type percentage
 
-and InscricaoMunicipal = int
+type InscricaoMunicipal = string
 
 type Cnpj = string
+
+and NotaFiscalServico =
+    | Pendente of NotaFiscalServicoEntity
+    | AguardandoAutorizacao of NotaEnviada
+    | Autorizada of NotaAutorizada
+    | Erro of NotaErro
+    | Cancelada of NotaCancelada
+
+and NotaEnviada = NotaFiscalServicoEntity * DataEmissao * Rps
+and NotaAutorizada = NotaEnviada * NumeroNota
+and NotaErro = NotaEnviada * MensagemRetorno list
+and NotaCancelada = NotaAutorizada * CodigoCancelamento
+
+and NotaFiscalServicoEntity =
+    { Id: Guid
+      DataCriacao: DateTime
+      DataAlteracao: DateTime option
+      Prestador: Prestador
+      Tomador: Tomador
+      Servico: Servico }
 
 and Prestador =
     { Cnpj: Cnpj
@@ -143,13 +163,6 @@ and Valores =
       DescontoIncondicionado: decimal option
       Aliquota: float<percentage> option
       ValorLiquidoNfse: decimal option }
-    
-type NotaFiscalServico =
-    | Pendente of DadosNotaFiscalServico
-    | AguardandoAutorizacao of NotaEnviada
-    | Autorizada of NotaAutorizada
-    | Erro of NotaErro
-    | Cancelada of NotaCancelada
 
 and CodigoCancelamento = string
 
@@ -171,19 +184,7 @@ and Correcao = string
 and MensagemRetorno =
     | Sucesso of DadosMensagemRetorno
     | Falha of DadosMensagemRetorno * Correcao
-    
-and NotaEnviada = DadosNotaFiscalServico * DataEmissao * Rps
-and NotaAutorizada = NotaEnviada * NumeroNota
-and NotaErro = NotaEnviada * MensagemRetorno list
-and NotaCancelada = NotaAutorizada * CodigoCancelamento
 
-and DadosNotaFiscalServico =
-    { Id: Guid
-      DataCriacao: DateTime
-      DataAlteracao: DateTime option
-      Prestador: Prestador
-      Tomador: Tomador
-      Servico: Servico }
 
 
 //Esses mappers possivelmente serao movidos para o projeto de integracao com as prefeituras

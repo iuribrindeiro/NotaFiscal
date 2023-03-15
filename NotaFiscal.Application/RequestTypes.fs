@@ -1,4 +1,4 @@
-﻿module RequestTypes
+﻿module NotaFiscal.WebApplication.RequestTypes
 
 open System
 open NotaFiscal.Domain.NotaFiscalServico
@@ -15,9 +15,7 @@ and PrestadorViewModel =
     { Cnpj: string option
       InscricaoMunicipal: InscricaoMunicipal option }
 
-and ContatoViewModel =
-    { Telefone: string option
-      Email: string option }
+and ContatoViewModel = { Telefone: string; Email: string }
 
 and EnderecoViewModel =
     { Rua: Rua
@@ -29,17 +27,23 @@ and EnderecoViewModel =
       Cep: Cep }
 
 
-and TipoPessoa =
-    | Fisica = 1
-    | Juridica = 2
+and TomadorPessoaFisicaViewModel =
+    { Cpf: string
+      InscricaoMunicipal: string option
+      Contato: ContatoViewModel option
+      Endereco: EnderecoViewModel option }
+
+and TomadorPessoaJuridicaViewModel =
+    { Cnpj: string
+      RazaoSocial: string
+      InscricaoMunicipal: string option
+      Contato: ContatoViewModel
+      Endereco: EnderecoViewModel }
 
 and TomadorViewModel =
-    { TipoPessoa: TipoPessoa
-      CpfCnpj: string option
-      RazaoSocial: string option
-      InscricaoMunicipal: InscricaoMunicipal option
-      Endereco: EnderecoViewModel option
-      Contato: ContatoViewModel option }
+    | PessoaFisicaVM of TomadorPessoaFisicaViewModel option
+    | PessoaJuridicaVM of TomadorPessoaJuridicaViewModel
+    | EstrangeiroVM
 
 
 and RegimeEspecialTributacaoViewModel =

@@ -3,8 +3,8 @@ module NotaFiscal.WebApplication.Validations.ValidationOperators
 open NotaFiscal.WebApplication.Validations.ValidationUtils
 
 let bind
-    (binder: Input<'value> -> ValidationResult<'valueInput, 'valueResult>)
-    (outputPreviousValidation: ValidationResult<'value, 'valueInput>)
+    (binder: Input<'valueInput> -> ValidationResult<'valueInput, 'valueResult>)
+    (outputPreviousValidation: ValidationResult<'valueInput, 'valueInput>)
     =
     match outputPreviousValidation with
     | Ok(fieldName, value) -> binder (fieldName, value)
