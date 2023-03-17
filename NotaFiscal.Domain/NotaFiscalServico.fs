@@ -1,168 +1,128 @@
 ﻿module NotaFiscal.Domain.NotaFiscalServico
 
 open System
+open NotaFiscalPrimitives
 
-[<Measure>]
-type percentage
 
-type InscricaoMunicipal = string
-
-type Cnpj = string
-
-and NotaFiscalServico =
-    | Pendente of NotaFiscalServicoEntity
-    | AguardandoAutorizacao of NotaEnviada
-    | Autorizada of NotaAutorizada
-    | Erro of NotaErro
-    | Cancelada of NotaCancelada
-
-and NotaEnviada = NotaFiscalServicoEntity * DataEmissao * Rps
-and NotaAutorizada = NotaEnviada * NumeroNota
-and NotaErro = NotaEnviada * MensagemRetorno list
-and NotaCancelada = NotaAutorizada * CodigoCancelamento
-
-and NotaFiscalServicoEntity =
-    { Id: Guid
-      DataCriacao: DateTime
-      DataAlteracao: DateTime option
-      Prestador: Prestador
+type NotaFiscalServico =
+    { Prestador: Prestador
       Tomador: Tomador
-      Servico: Servico }
+      Servico: Servico
+      Status: NotaFiscalServicoStatus }
+
+and NotaFiscalServicoStatus =
+    | Pendente
+    | AguardandoAutorizacao of NotaFiscalEnviadaStatus
+    | Autorizada of NotaFiscalAutorizadaStatus
+    | Erro of NotaFiscalErroStatus
+    | Cancelada of NotaFiscalCanceladaStatus
+
+and NotaFiscalEnviadaStatus =
+    | AguardandoEnvio of DataEmissao * Rps
+    | AguardandoAutorizacao of DataEmissao * Rps
+
+and NotaFiscalAutorizadaStatus = NotaFiscalEnviadaStatus * NumeroNota
+and NotaFiscalErroStatus = NotaFiscalEnviadaStatus * StatusMensagemRetorno list
+and NotaFiscalCanceladaStatus = NotaFiscalAutorizadaStatus * CodigoCancelamento
+
+and InscricaoMunicipal = StringMax15.Value option
+
+and CodigoMunicipio = StringMax7.Value
 
 and Prestador =
-    { Cnpj: Cnpj
-      InscricaoMunicipal: InscricaoMunicipal option }
+    { Cnpj: CNPJ.Value
+      InscricaoMunicipal: InscricaoMunicipal }
 
-and Contato = { Telefone: string; Email: string }
-
-and UF =
-    | AC
-    | AL
-    | AM
-    | AP
-    | BA
-    | CE
-    | DF
-    | ES
-    | GO
-    | MA
-    | MG
-    | MS
-    | MT
-    | PA
-    | PB
-    | PE
-    | PI
-    | PR
-    | RJ
-    | RN
-    | RO
-    | RR
-    | RS
-    | SC
-    | SE
-    | SP
-    | TO
-
-
-and Rua = string
-
-and Numero = string
-
-and Complemento = string option
-and Bairro = string
-and CodigoMunicipio = string
-and Cep = string
+and Contato =
+    { Telefone: StringMax11.Value
+      Email: StringMax80.Value }
 
 and Endereco =
-    { Rua: Rua
-      Numero: Numero
-      Complemento: Complemento
-      Bairro: Bairro
+    { Rua: StringMax120.Value
+      Numero: StringMax60.Value
+      Complemento: StringMax60.Value option
+      Bairro: StringMax60.Value
       CodigoMunicipio: CodigoMunicipio
-      UF: UF
-      Cep: Cep }
+      UF: UF.Value
+      Cep: String8.Value }
 
 
-and DadosTomadorPessoaFisica =
-    { Cpf: string
-      InscricaoMunicipal: InscricaoMunicipal option
+and TomadorPessoaFisica =
+    { Cpf: CPF.Value
+      InscricaoMunicipal: InscricaoMunicipal
       Endereco: Endereco option
       Contato: Contato option }
 
-and DadosTomadorPessoaJuridica =
-    { Cnpj: string
-      InscricaoMunicipal: InscricaoMunicipal option
-      RazaoSocial: string
+and TomadorPessoaJuridica =
+    { Cnpj: CNPJ.Value
+      InscricaoMunicipal: InscricaoMunicipal
+      RazaoSocial: StringMax115.Value
       Contato: Contato
       Endereco: Endereco }
 
 and Tomador =
-    | PessoaFisica of DadosTomadorPessoaFisica option
-    | PessoaJuridica of DadosTomadorPessoaJuridica
+    | PessoaFisica of TomadorPessoaFisica option
+    | PessoaJuridica of TomadorPessoaJuridica
     | Estrangeiro
 
 and RegimeEspecialTributacao =
-    | MicroempresaMunicipal of Descricao
-    | Estimativa of Descricao
-    | SociedadeProfissionais of Descricao
-    | Cooperativa of Descricao
-    | MicroempreendedorIndividual of Descricao
-    | MicroempreendedorPequenoPorte of Descricao
+    | MicroempresaMunicipal
+    | Estimativa
+    | SociedadeProfissionais
+    | Cooperativa
+    | MicroempreendedorIndividual
+    | MicroempreendedorPequenoPorte
 
 and NaturezaOperacao =
-    | TributacaoMunicipio of Descricao
-    | TributacaoForaMunicipio of Descricao
-    | Isencao of Descricao
-    | Imune of Descricao
+    | TributacaoMunicipio
+    | TributacaoForaMunicipio
+    | Isencao
+    | Imune
     | ExigibilidadeSuspensa of NaturezaOperacaoExigibilidadeSuspensa
 
 and NaturezaOperacaoExigibilidadeSuspensa =
-    | DecisaoJudicial of Descricao
-    | ProcedimentoAdministrativo of Descricao
+    | DecisaoJudicial
+    | ProcedimentoAdministrativo
 
 and Rps =
     { Numero: uint32
       Serie: uint32
       Tipo: TipoRps }
 
-and Descricao = string
-
 and TipoRps =
-    | Rps of Descricao
-    | NotaFiscalConjugadaMista of Descricao
-    | Cupom of Descricao
+    | Rps
+    | NotaFiscalConjugadaMista
+    | Cupom
 
 and Servico =
     { Valores: Valores
-      ItemListaServico: string
-      CodigoTributacaoMunicipio: string
-      Discriminacao: string
-      MunicipioPrestacaoServico: string
+      ItemListaServico: StringMax7.Value
+      CodigoTributacaoMunicipio: StringMax20.Value option
+      Discriminacao: StringMax2000.Value
+      CodigoMunicipio: CodigoMunicipio
+      CodigoCnae: StringMax7.Value
       NaturezaOperacao: NaturezaOperacao
       RegimeEspecialTributacao: RegimeEspecialTributacao
       OptanteSimplesNacional: bool
       IncentivadorCultural: bool }
 
 and Iss =
-    | Retido of decimal
-    | NaoRetido of decimal
+    | Retido of Dinheiro.Value
+    | NaoRetido of Dinheiro.Value
 
 and Valores =
-    { Servicos: decimal
-      Deducoes: decimal option
-      Pis: decimal option
-      Cofins: decimal option
-      Inss: decimal option
-      Ir: decimal option
-      Csll: decimal option
+    { Servicos: Dinheiro.Value
+      Deducoes: Dinheiro.Value option
+      Pis: Dinheiro.Value option
+      Cofins: Dinheiro.Value option
+      Inss: Dinheiro.Value option
+      Ir: Dinheiro.Value option
+      Csll: Dinheiro.Value option
       Iss: Iss
-      OutrasRetencoes: decimal option
-      BaseCalculo: decimal option
-      DescontoCondicionado: decimal option
-      DescontoIncondicionado: decimal option
-      Aliquota: float<percentage> option
-      ValorLiquidoNfse: decimal option }
+      OutrasRetencoes: Dinheiro.Value option
+      DescontoCondicionado: Dinheiro.Value option
+      DescontoIncondicionado: Dinheiro.Value option
+      Aliquota: Percentage.Value option }
 
 and CodigoCancelamento = string
 
@@ -174,16 +134,16 @@ and NumeroLote = string
 
 and CodigoMensagemAlerta = string
 
-and DadosMensagemRetorno =
+and MensagemRetorno =
     { Rps: Rps
       CodigoMensagemAlerta: CodigoMensagemAlerta
       Mensagem: string }
 
 and Correcao = string
 
-and MensagemRetorno =
-    | Sucesso of DadosMensagemRetorno
-    | Falha of DadosMensagemRetorno * Correcao
+and StatusMensagemRetorno =
+    | Sucesso of MensagemRetorno
+    | Falha of MensagemRetorno * Correcao
 
 
 
@@ -198,6 +158,23 @@ let mapNaturezaOperacao naturezaOperacao =
         match motivo with
         | DecisaoJudicial _ -> 5
         | ProcedimentoAdministrativo _ -> 6
+
+
+// let calcularValorLiquidoTotal (valores: Valores) =
+//     let valorLiquidoTotal =
+//         valores.Servicos
+//         - (valores.Deducoes |> Option.defaultValue 0m)
+//         - (valores.Pis |> Option.defaultValue 0m)
+//         - (valores.Cofins |> Option.defaultValue 0m)
+//         - (valores.Inss |> Option.defaultValue 0m)
+//         - (valores.Ir |> Option.defaultValue 0m)
+//         - (valores.Csll |> Option.defaultValue 0m)
+//         - (valores.OutrasRetencoes |> Option.defaultValue 0m)
+//         - (valores.DescontoCondicionado |> Option.defaultValue 0m)
+//         - (valores.DescontoIncondicionado |> Option.defaultValue 0m)
+
+//     { valores with
+//         ValorLiquidoTotal = Some valorLiquidoTotal }
 
 let mapRegimeEspecialTributacao regime =
     match regime with
@@ -219,35 +196,3 @@ let mapTipoRps tipo =
     | Rps _ -> 1
     | NotaFiscalConjugadaMista _ -> 2
     | Cupom _ -> 3
-
-
-let ufFromString (s: string) : UF option =
-    match s with
-    | "AC" -> Some AC
-    | "AL" -> Some AL
-    | "AP" -> Some AP
-    | "AM" -> Some AM
-    | "BA" -> Some BA
-    | "CE" -> Some CE
-    | "DF" -> Some DF
-    | "ES" -> Some ES
-    | "GO" -> Some GO
-    | "MA" -> Some MA
-    | "MT" -> Some MT
-    | "MS" -> Some MS
-    | "MG" -> Some MG
-    | "PA" -> Some PA
-    | "PB" -> Some PB
-    | "PR" -> Some PR
-    | "PE" -> Some PE
-    | "PI" -> Some PI
-    | "RJ" -> Some RJ
-    | "RN" -> Some RN
-    | "RS" -> Some RS
-    | "RO" -> Some RO
-    | "RR" -> Some RR
-    | "SC" -> Some SC
-    | "SP" -> Some SP
-    | "SE" -> Some SE
-    | "TO" -> Some TO
-    | _ -> None

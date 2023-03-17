@@ -1,6 +1,6 @@
-USE master;
-CREATE DATABASE NotaFiscalDb;
+-- Fix all compilation errors in this script
 
+CREATE DATABASE NotaFiscalDb;
 GO
 
 USE NotaFiscalDb;

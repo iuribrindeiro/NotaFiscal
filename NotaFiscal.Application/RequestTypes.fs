@@ -1,93 +1,98 @@
 ﻿module NotaFiscal.WebApplication.RequestTypes
 
-open System
-open NotaFiscal.Domain.NotaFiscalServico
+type NotaFiscalServico =
+    { Prestador: Prestador
+      Tomador: Tomador
+      Servico: Servico }
 
-type DadosNotaFiscalServicoViewModel =
-    { Id: Guid option
-      DataCriacao: DateTime option
-      DataAlteracao: DateTime option
-      Prestador: PrestadorViewModel option
-      Tomador: TomadorViewModel option
-      Servico: ServicoViewModel option }
+and InscricaoMunicipal = string option
 
-and PrestadorViewModel =
-    { Cnpj: string option
-      InscricaoMunicipal: InscricaoMunicipal option }
+and CodigoMunicipio = string
 
-and ContatoViewModel = { Telefone: string; Email: string }
+and Prestador =
+    { Cnpj: string
+      InscricaoMunicipal: InscricaoMunicipal }
 
-and EnderecoViewModel =
-    { Rua: Rua
-      Numero: Numero
-      Complemento: Complemento
-      Bairro: Bairro
+and Contato = { Telefone: string; Email: string }
+
+and Endereco =
+    { Rua: string
+      Numero: string
+      Complemento: string option
+      Bairro: string
       CodigoMunicipio: CodigoMunicipio
       UF: string
-      Cep: Cep }
+      Cep: string }
 
 
-and TomadorPessoaFisicaViewModel =
+and TomadorPessoaFisica =
     { Cpf: string
-      InscricaoMunicipal: string option
-      Contato: ContatoViewModel option
-      Endereco: EnderecoViewModel option }
+      InscricaoMunicipal: InscricaoMunicipal
+      Endereco: Endereco option
+      Contato: Contato option }
 
-and TomadorPessoaJuridicaViewModel =
+and TomadorPessoaJuridica =
     { Cnpj: string
+      InscricaoMunicipal: InscricaoMunicipal
       RazaoSocial: string
-      InscricaoMunicipal: string option
-      Contato: ContatoViewModel
-      Endereco: EnderecoViewModel }
+      Contato: Contato
+      Endereco: Endereco }
 
-and TomadorViewModel =
-    | PessoaFisicaVM of TomadorPessoaFisicaViewModel option
-    | PessoaJuridicaVM of TomadorPessoaJuridicaViewModel
-    | EstrangeiroVM
+and Tomador =
+    | PessoaFisica of TomadorPessoaFisica option
+    | PessoaJuridica of TomadorPessoaJuridica
+    | Estrangeiro
 
+and RegimeEspecialTributacao =
+    | MicroempresaMunicipal
+    | Estimativa
+    | SociedadeProfissionais
+    | Cooperativa
+    | MicroempreendedorIndividual
+    | MicroempreendedorPequenoPorte
 
-and RegimeEspecialTributacaoViewModel =
-    | MicroempresaMunicipal = 1
-    | Estimativa = 2
-    | SociedadeProfissionais = 3
-    | Cooperativa = 4
-    | MicroempreendedorIndividual = 5
-    | MicroempreendedorPequenoPorte = 6
+and NaturezaOperacao =
+    | TributacaoMunicipio
+    | TributacaoForaMunicipio
+    | Isencao
+    | Imune
+    | ExigibilidadeSuspensa of NaturezaOperacaoExigibilidadeSuspensa
 
-and NaturezaOperacaoViewModel =
-    | TributacaoMunicipio = 1
-    | TributacaoForaMunicipio = 2
-    | Isencao = 3
-    | Imune = 4
-    | DecisaoJudicial = 5
-    | ProcedimentoAdministrativo = 6
+and NaturezaOperacaoExigibilidadeSuspensa =
+    | DecisaoJudicial
+    | ProcedimentoAdministrativo
 
-and ServicoViewModel =
-    { Valores: ValoresViewModel option
-      ItemListaServico: string option
+and TipoRps =
+    | Rps
+    | NotaFiscalConjugadaMista
+    | Cupom
+
+and Servico =
+    { Valores: Valores
+      ItemListaServico: string
       CodigoTributacaoMunicipio: string option
-      Discriminacao: string option
-      MunicipioPrestacaoServico: string option
-      NaturezaOperacao: NaturezaOperacaoViewModel
-      RegimeEspecialTributacao: RegimeEspecialTributacaoViewModel
-      OptanteSimplesNacional: bool option
-      IncentivadorCultural: bool option }
+      Discriminacao: string
+      CodigoMunicipio: CodigoMunicipio
+      CodigoCnae: string
+      NaturezaOperacao: NaturezaOperacao
+      RegimeEspecialTributacao: RegimeEspecialTributacao
+      OptanteSimplesNacional: bool
+      IncentivadorCultural: bool }
 
+and Iss =
+    | Retido of decimal
+    | NaoRetido of decimal
 
-and ValoresViewModel =
-    { Servicos: decimal option
+and Valores =
+    { Servicos: decimal
       Deducoes: decimal option
       Pis: decimal option
       Cofins: decimal option
       Inss: decimal option
       Ir: decimal option
       Csll: decimal option
-      IssRetido: bool option
-      ValorIssRetido: decimal option
-      ValorIss: decimal option
+      Iss: Iss
       OutrasRetencoes: decimal option
-      BaseCalculo: decimal option
       DescontoCondicionado: decimal option
       DescontoIncondicionado: decimal option
-      Aliquota: float<percentage> option
-      ValorLiquidoNfse: decimal option }
+      Aliquota: float option }
