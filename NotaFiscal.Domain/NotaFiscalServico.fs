@@ -2,7 +2,7 @@
 
 open System
 open NotaFiscalPrimitives
-
+open ValidationErrors
 
 type NotaFiscalServico =
     { Prestador: Prestador
@@ -12,35 +12,39 @@ type NotaFiscalServico =
 
 and NotaFiscalServicoStatus =
     | Pendente
-    | AguardandoAutorizacao of NotaFiscalEnviadaStatus
+    | AguardandoAutorizacao of AguardandoAutorizacaoStatus
     | Autorizada of NotaFiscalAutorizadaStatus
-    | Erro of NotaFiscalErroStatus
+    | ErroAutorizacao of NotaFiscalErroStatus
     | Cancelada of NotaFiscalCanceladaStatus
+    | SolicitandoCancelamento of NotaFiscalSolicitandoCancelamentoStatus
+    | FalhaCancelamento of NotaFiscalFalhaCancelamentoStatus
 
-and NotaFiscalEnviadaStatus =
-    | AguardandoEnvio of DataEmissao * Rps
-    | AguardandoAutorizacao of DataEmissao * Rps
+and NotaSolicitadoEnvio = { DataEmissao: DataEmissao; Rps: Rps }
 
-and NotaFiscalAutorizadaStatus = NotaFiscalEnviadaStatus * NumeroNota
-and NotaFiscalErroStatus = NotaFiscalEnviadaStatus * StatusMensagemRetorno list
-and NotaFiscalCanceladaStatus = NotaFiscalAutorizadaStatus * CodigoCancelamento
+and AguardandoAutorizacaoStatus =
+    | AguardandoEnvio of NotaSolicitadoEnvio
+    | AguardandoAutorizacaoPrefeitura of NotaSolicitadoEnvio
 
-and InscricaoMunicipal = StringMax15.Value option
+and NotaFiscalAutorizadaStatus = NotaSolicitadoEnvio * NumeroNota
+and NotaFiscalErroStatus = NotaSolicitadoEnvio * ErroComunicacao list
+and NotaFiscalSolicitandoCancelamentoStatus = NotaSolicitadoEnvio * NumeroNota * CodigoCancelamento
+and NotaFiscalCanceladaStatus = NotaSolicitadoEnvio * NumeroNota * CodigoCancelamento
+and NotaFiscalFalhaCancelamentoStatus = NotaSolicitadoEnvio * NumeroNota * CodigoCancelamento * ErroComunicacao list
 
-and CodigoMunicipio = StringMax7.Value
+and CodigoMunicipio = CodigoMunicipio of StringMax7.Value
 
 and Prestador =
     { Cnpj: CNPJ.Value
-      InscricaoMunicipal: InscricaoMunicipal }
+      InscricaoMunicipal: StringMax15.Value }
 
 and Contato =
-    { Telefone: StringMax11.Value
-      Email: StringMax80.Value }
+    { Telefone: Telefone.Value
+      Email: EmailAddress.Value }
 
 and Endereco =
     { Rua: StringMax120.Value
       Numero: StringMax60.Value
-      Complemento: StringMax60.Value option
+      Complemento: StringMax60.OptionalValue
       Bairro: StringMax60.Value
       CodigoMunicipio: CodigoMunicipio
       UF: UF.Value
@@ -49,44 +53,27 @@ and Endereco =
 
 and TomadorPessoaFisica =
     { Cpf: CPF.Value
-      InscricaoMunicipal: InscricaoMunicipal
+      InscricaoMunicipal: StringMax15.OptionalValue
       Endereco: Endereco option
       Contato: Contato option }
 
 and TomadorPessoaJuridica =
     { Cnpj: CNPJ.Value
-      InscricaoMunicipal: InscricaoMunicipal
+      InscricaoMunicipal: StringMax15.OptionalValue
       RazaoSocial: StringMax115.Value
       Contato: Contato
       Endereco: Endereco }
 
+and TomadorEstrangeiro = TomadorEstrangeiro
+
 and Tomador =
     | PessoaFisica of TomadorPessoaFisica option
     | PessoaJuridica of TomadorPessoaJuridica
-    | Estrangeiro
-
-and RegimeEspecialTributacao =
-    | MicroempresaMunicipal
-    | Estimativa
-    | SociedadeProfissionais
-    | Cooperativa
-    | MicroempreendedorIndividual
-    | MicroempreendedorPequenoPorte
-
-and NaturezaOperacao =
-    | TributacaoMunicipio
-    | TributacaoForaMunicipio
-    | Isencao
-    | Imune
-    | ExigibilidadeSuspensa of NaturezaOperacaoExigibilidadeSuspensa
-
-and NaturezaOperacaoExigibilidadeSuspensa =
-    | DecisaoJudicial
-    | ProcedimentoAdministrativo
+    | Estrangeiro of TomadorEstrangeiro
 
 and Rps =
-    { Numero: uint32
-      Serie: uint32
+    { Numero: int
+      Serie: string
       Tipo: TipoRps }
 
 and TipoRps =
@@ -97,102 +84,72 @@ and TipoRps =
 and Servico =
     { Valores: Valores
       ItemListaServico: StringMax7.Value
-      CodigoTributacaoMunicipio: StringMax20.Value option
+      CodigoTributacaoMunicipio: StringMax20.OptionalValue
       Discriminacao: StringMax2000.Value
-      CodigoMunicipio: CodigoMunicipio
-      CodigoCnae: StringMax7.Value
-      NaturezaOperacao: NaturezaOperacao
-      RegimeEspecialTributacao: RegimeEspecialTributacao
+      CodigoMunicipioPrestacao: CodigoMunicipio
+      CodigoCnae: StringMax7.OptionalValue
+      NaturezaOperacao: NaturezaOperacao.Value
+      RegimeEspecialTributacao: RegimeEspecialTributacao.Value
       OptanteSimplesNacional: bool
       IncentivadorCultural: bool }
 
 and Iss =
-    | Retido of Dinheiro.Value
-    | NaoRetido of Dinheiro.Value
+    | Retido of ValorDinheiro.Value
+    | NaoRetido of ValorDinheiro.Value
 
 and Valores =
-    { Servicos: Dinheiro.Value
-      Deducoes: Dinheiro.Value option
-      Pis: Dinheiro.Value option
-      Cofins: Dinheiro.Value option
-      Inss: Dinheiro.Value option
-      Ir: Dinheiro.Value option
-      Csll: Dinheiro.Value option
+    { Servicos: ValorDinheiro.Value
+      Deducoes: ValorDinheiro.OptionalValue
+      Pis: ValorDinheiro.OptionalValue
+      Cofins: ValorDinheiro.OptionalValue
+      Inss: ValorDinheiro.OptionalValue
+      Ir: ValorDinheiro.OptionalValue
+      Csll: ValorDinheiro.OptionalValue
       Iss: Iss
-      OutrasRetencoes: Dinheiro.Value option
-      DescontoCondicionado: Dinheiro.Value option
-      DescontoIncondicionado: Dinheiro.Value option
-      Aliquota: Percentage.Value option }
+      OutrasRetencoes: ValorDinheiro.OptionalValue
+      DescontoCondicionado: ValorDinheiro.OptionalValue
+      DescontoIncondicionado: ValorDinheiro.OptionalValue
+      Aliquota: Percentage.OptionalValue }
 
 and CodigoCancelamento = string
 
 and DataEmissao = DateTime
 
-and NumeroNota = string
+and NumeroNota = int
 
 and NumeroLote = string
 
-and CodigoMensagemAlerta = string
+and CodigoErro = string
 
-and MensagemRetorno =
-    { Rps: Rps
-      CodigoMensagemAlerta: CodigoMensagemAlerta
-      Mensagem: string }
+and ErroComunicacao =
+    { CodigoMensagemAlerta: CodigoErro
+      Mensagem: string
+      Correcao: string option }
 
 and Correcao = string
 
-and StatusMensagemRetorno =
-    | Sucesso of MensagemRetorno
-    | Falha of MensagemRetorno * Correcao
+let createCnpj cnpj mapErrors =
+    cnpj |> CNPJ.create |> mapFailures mapErrors
+
+let createCnpjPrestador cnpj = createCnpj cnpj PrestadorCNPJInvalido
+
+let createInscricaoMunicipalPrestador inscricaoMunicipal =
+    inscricaoMunicipal
+    |> StringMax15.create
+    |> mapFailures PrestadorInscricaoMunicipalInvalida
 
 
+let createPrestador cnpj inscricaoMunicipal =
+    { Cnpj = cnpj
+      InscricaoMunicipal = inscricaoMunicipal }
 
-//Esses mappers possivelmente serao movidos para o projeto de integracao com as prefeituras
-let mapNaturezaOperacao naturezaOperacao =
-    match naturezaOperacao with
-    | TributacaoMunicipio _ -> 1
-    | TributacaoForaMunicipio _ -> 2
-    | Isencao _ -> 3
-    | Imune _ -> 4
-    | ExigibilidadeSuspensa motivo ->
-        match motivo with
-        | DecisaoJudicial _ -> 5
-        | ProcedimentoAdministrativo _ -> 6
+let private createNotaFiscalServico' prestador tomador servico =
+    { Prestador = prestador
+      Tomador = tomador
+      Servico = servico
+      Status = Pendente }
 
-
-// let calcularValorLiquidoTotal (valores: Valores) =
-//     let valorLiquidoTotal =
-//         valores.Servicos
-//         - (valores.Deducoes |> Option.defaultValue 0m)
-//         - (valores.Pis |> Option.defaultValue 0m)
-//         - (valores.Cofins |> Option.defaultValue 0m)
-//         - (valores.Inss |> Option.defaultValue 0m)
-//         - (valores.Ir |> Option.defaultValue 0m)
-//         - (valores.Csll |> Option.defaultValue 0m)
-//         - (valores.OutrasRetencoes |> Option.defaultValue 0m)
-//         - (valores.DescontoCondicionado |> Option.defaultValue 0m)
-//         - (valores.DescontoIncondicionado |> Option.defaultValue 0m)
-
-//     { valores with
-//         ValorLiquidoTotal = Some valorLiquidoTotal }
-
-let mapRegimeEspecialTributacao regime =
-    match regime with
-    | MicroempresaMunicipal _ -> 1
-    | Estimativa _ -> 2
-    | SociedadeProfissionais _ -> 3
-    | Cooperativa _ -> 4
-    | MicroempreendedorIndividual _ -> 5
-    | MicroempreendedorPequenoPorte _ -> 6
-
-//Os campos booleanos nas prefeituras geralmente sao mapeados para 1(true)/2(false)
-let mapBool verdadeiro =
-    match verdadeiro with
-    | true -> 1
-    | false -> 2
-
-let mapTipoRps tipo =
-    match tipo with
-    | Rps _ -> 1
-    | NotaFiscalConjugadaMista _ -> 2
-    | Cupom _ -> 3
+let createNotaFiscalServico prestadorResult tomadorResult servicoResult =
+    createNotaFiscalServico' <!> (prestadorResult |> mapFailures PrestadorInvalido)
+    <*> (tomadorResult |> mapFailures TomadorInvalido)
+    <*> (servicoResult |> mapFailures ServicoInvalido)

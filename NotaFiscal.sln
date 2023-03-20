@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "NotaFiscal.Domain", "NotaFiscal.Domain\NotaFiscal.Domain.fsproj", "{5A0069E4-FB8D-4915-9C5F-73A204BB9978}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NotaFiscal.Domain", "NotaFiscal.Domain\NotaFiscal.Domain.fsproj", "{5A0069E4-FB8D-4915-9C5F-73A204BB9978}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "NotaFiscal.WebApplication", "NotaFiscal.Application\NotaFiscal.WebApplication.fsproj", "{7000639D-6B00-4C33-9AA7-5810A974EA14}"
 EndProject

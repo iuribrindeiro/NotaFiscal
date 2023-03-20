@@ -1,10 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Rop.fs" />
+    <Compile Include="ValidationErrors.fs" />
     <Compile Include="NotaFiscalPrimitives.fs" />
     <Compile Include="NotaFiscalServico.fs" />
+    <Compile Include="Creators/EnderecoCreator.fs" />
+    <Compile Include="Creators/TomadorCreator.fs" />
+    <Compile Include="Creators/ServicosCreator.fs" />
   </ItemGroup>
 </Project>
