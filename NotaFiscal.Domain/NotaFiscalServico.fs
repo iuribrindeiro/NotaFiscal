@@ -13,11 +13,7 @@ type NotaFiscalServico =
 
 let createNotaFiscalServico id tomadorOrError servicoOrError =
     let createNotaFiscalServico' tomador servico =
-        { Id = id
-          Tomador = tomador
-          Servico = servico
-          Status = Pendente }
+        { Id = id; Tomador = tomador; Servico = servico; Status = Pendente }
 
-    createNotaFiscalServico'
-    <!> tomadorOrError
+    createNotaFiscalServico' <!> tomadorOrError
     <*> servicoOrError

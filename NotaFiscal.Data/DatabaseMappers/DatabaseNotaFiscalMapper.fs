@@ -73,10 +73,7 @@ let toNotafiscalDomain
 
 
     createNotaFiscalWithStatus
-    <!> createNotaFiscalServico
-        nota.Id
-        tomadorResult
-        servicoResult
+    <!> createNotaFiscalServico nota.Id tomadorResult servicoResult
     <*> statusResult
 
 let mapNotaFiscalTable
@@ -93,8 +90,7 @@ let mapNotaFiscalTable
     issDiscriminator
     =
     let codigoCnae =
-        nota.Servico.CodigoCnae
-        |> StrMax7.mapToValueOptional
+        nota.Servico.CodigoCnae |> StrMax7.mapToValueOptional
 
 
     let codigoTributacao =
@@ -102,16 +98,13 @@ let mapNotaFiscalTable
         |> StrMax20.mapToValueOption
 
     let discriminacao =
-        nota.Servico.Discriminacao
-        |> StrMax2000.mapToValue
+        nota.Servico.Discriminacao |> StrMax2000.mapToValue
 
     let itemListaServico =
-        nota.Servico.ItemListaServico
-        |> StrMax7.mapToValue
+        nota.Servico.ItemListaServico |> StrMax7.mapToValue
 
     let municipioPrestacaoServico =
-        nota.Servico.CodigoMunicipioPrestacao
-        |> StrMax7.mapToValue
+        nota.Servico.CodigoMunicipioPrestacao |> StrMax7.mapToValue
 
 
     { dbo.NotaFiscalServico.Id = nota.Id
@@ -121,33 +114,54 @@ let mapNotaFiscalTable
       dbo.NotaFiscalServico.CodigoTributacaoMunicipio = codigoTributacao
       dbo.NotaFiscalServico.DataEmissao = dataEmissao
       dbo.NotaFiscalServico.Discriminacao = discriminacao
-      dbo.NotaFiscalServico.IncentivadorCultural = nota.Servico.IncentivadorCultural
+      dbo.NotaFiscalServico.IncentivadorCultural =
+        nota.Servico.IncentivadorCultural
       dbo.NotaFiscalServico.ItemListaServico = itemListaServico
-      dbo.NotaFiscalServico.MunicipioPrestacaoServico = municipioPrestacaoServico
+      dbo.NotaFiscalServico.MunicipioPrestacaoServico =
+        municipioPrestacaoServico
       dbo.NotaFiscalServico.NumeroLote = numeroLote
       dbo.NotaFiscalServico.NumeroNota = numeroNota
       dbo.NotaFiscalServico.NumeroProtocolo = numeroProtocolo
-      dbo.NotaFiscalServico.OptanteSimplesNacional = nota.Servico.OptanteSimplesNacional
+      dbo.NotaFiscalServico.OptanteSimplesNacional =
+        nota.Servico.OptanteSimplesNacional
       dbo.NotaFiscalServico.RpsNumero = rps |> Option.map (fun x -> x.Numero)
       dbo.NotaFiscalServico.RpsSerie = rps |> Option.map (fun x -> x.Serie)
       dbo.NotaFiscalServico.TipoRpsId = rps |> Option.map toTipoRpsDb
-      dbo.NotaFiscalServico.ServicoNaturezaOperacaoId = NaturezaOperacao.mapBack nota.Servico.NaturezaOperacao
-      dbo.NotaFiscalServico.ServicoRegimeEspecialTributacaoId = RegimeEspecialTributacao.mapBack nota.Servico.RegimeEspecialTributacao
-      dbo.NotaFiscalServico.TomadorDiscriminator = toTomadorDiscriminatorDb nota.Tomador
+      dbo.NotaFiscalServico.ServicoNaturezaOperacaoId =
+        NaturezaOperacao.mapValue nota.Servico.NaturezaOperacao
+      dbo.NotaFiscalServico.ServicoRegimeEspecialTributacaoId =
+        RegimeEspecialTributacao.mapValue nota.Servico.RegimeEspecialTributacao
+      dbo.NotaFiscalServico.TomadorDiscriminator =
+        toTomadorDiscriminatorDb nota.Tomador
       dbo.NotaFiscalServico.TomadorId = tomadorDb |> Option.map (fun x -> x.Id)
-      dbo.NotaFiscalServico.ValoresAliquota = nota.Servico.Valores.Aliquota |> Percentage.mapToValueOptional
-      dbo.NotaFiscalServico.ValoresCofins = nota.Servico.Valores.Cofins |> Dinheiro.mapToValueOptional
-      dbo.NotaFiscalServico.ValoresCsll = nota.Servico.Valores.Csll |> Dinheiro.mapToValueOptional
-      dbo.NotaFiscalServico.ValoresDeducoes = nota.Servico.Valores.Deducoes |> Dinheiro.mapToValueOptional
-      dbo.NotaFiscalServico.ValoresDescontoCondicionado = nota.Servico.Valores.DescontoCondicionado |> Dinheiro.mapToValueOptional
-      dbo.NotaFiscalServico.ValoresDescontoIncondicionado = nota.Servico.Valores.DescontoIncondicionado |> Dinheiro.mapToValueOptional
-      dbo.NotaFiscalServico.ValoresInss = nota.Servico.Valores.Inss |> Dinheiro.mapToValueOptional
-      dbo.NotaFiscalServico.ValoresIr = nota.Servico.Valores.Ir |> Dinheiro.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresAliquota =
+        nota.Servico.Valores.Aliquota
+        |> Percentage.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresCofins =
+        nota.Servico.Valores.Cofins |> Dinheiro.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresCsll =
+        nota.Servico.Valores.Csll |> Dinheiro.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresDeducoes =
+        nota.Servico.Valores.Deducoes |> Dinheiro.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresDescontoCondicionado =
+        nota.Servico.Valores.DescontoCondicionado
+        |> Dinheiro.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresDescontoIncondicionado =
+        nota.Servico.Valores.DescontoIncondicionado
+        |> Dinheiro.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresInss =
+        nota.Servico.Valores.Inss |> Dinheiro.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresIr =
+        nota.Servico.Valores.Ir |> Dinheiro.mapToValueOptional
       dbo.NotaFiscalServico.ValoresIss = valorIss
       dbo.NotaFiscalServico.ValoresIssDiscriminator = issDiscriminator
-      dbo.NotaFiscalServico.ValoresOutrasRetencoes = nota.Servico.Valores.OutrasRetencoes |> Dinheiro.mapToValueOptional
-      dbo.NotaFiscalServico.ValoresPis = nota.Servico.Valores.Pis |> Dinheiro.mapToValueOptional
-      dbo.NotaFiscalServico.ValoresServicos = nota.Servico.Valores.Servicos |> Dinheiro.mapToValue }
+      dbo.NotaFiscalServico.ValoresOutrasRetencoes =
+        nota.Servico.Valores.OutrasRetencoes
+        |> Dinheiro.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresPis =
+        nota.Servico.Valores.Pis |> Dinheiro.mapToValueOptional
+      dbo.NotaFiscalServico.ValoresServicos =
+        nota.Servico.Valores.Servicos |> Dinheiro.mapToValue }
 
 
 
@@ -194,8 +208,7 @@ let mapErrosComunicacaoToDb nota =
         let toErroComunicacaoDb' =
             toErroComunicacaoDb nota.Id
 
-        errosComunicacao
-        |> List.map toErroComunicacaoDb'
+        errosComunicacao |> List.map toErroComunicacaoDb'
     | _ -> []
 
 let toNotaFiscalDb
@@ -225,7 +238,7 @@ let toNotaFiscalDb
         toNotaFiscalDb' nota tomador valorIss issDiscriminator
 
     (notaFiscalDb, contato, endereco, tomador, mapErrosComunicacaoToDb nota)
-    
+
 let mapNotasFiscaisResults
     (results:
         (dbo.NotaFiscalServico *
@@ -237,7 +250,8 @@ let mapNotasFiscaisResults
     results
     |> Seq.groupBy (fun (nota, _, _, _, _) -> nota.Id)
     |> Seq.map (fun (_, groupedResults) ->
-        let nota, tomador, endereco, contato, _ = groupedResults |> Seq.head
+        let nota, tomador, endereco, contato, _ =
+            groupedResults |> Seq.head
 
         let errosComunicacao =
             groupedResults

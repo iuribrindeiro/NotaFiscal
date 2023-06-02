@@ -16,7 +16,11 @@ let fail msg = Failure([ msg ])
 
 let failures msgs = Failure(msgs)
 
-let bindR (result: OperationResult<'a,'b>) (f: 'a -> OperationResult<'c,'b>): OperationResult<'a,'b> =
+let bindR
+    (result: OperationResult<'a, 'b>)
+    (f: 'a -> OperationResult<'c, 'b>)
+    : OperationResult<'a, 'b>
+    =
     match result with
     | Success(v, b) ->
         let result' = f v
@@ -59,7 +63,7 @@ let isFailure result =
     match result with
     | Success _ -> false
     | Failure(_) -> true
-    
+
 let toResult fResult err =
     match fResult with
     | Ok v -> succeed v
@@ -79,7 +83,7 @@ let mapSuccessResults results =
         | Failure(_) -> [])
         results
     |> List.concat
-    
+
 let mapFailureResults results =
     List.map
         (function
@@ -87,3 +91,9 @@ let mapFailureResults results =
         | Failure err -> err)
         results
     |> List.concat
+
+type ResultBuilder() =
+    member this.Return x = succeed x
+    member this.Bind(xResult, f) = bindR xResult f
+
+let result = ResultBuilder()

@@ -12,117 +12,168 @@ type StringError =
     | MustHaveLen of int
     | MustBeBetween of int * int
     | DoesntMatchPattern of string
-    
+
 type NumberError<'a, 'b> =
     | Missing
     | MustBePositive
     | MustBeBetween of 'a * 'b
-    
-type EnumError<'a>  =
-    | Invalid of 'a
 
-type StrMax20 = private StrMax20 of string
-type MaybeStrMax20 = private MaybeStrMax20 of string option
+type EnumError<'a> = | Invalid of 'a
 
-type StrMax2000 = private StrMax2000 of string
+type StrMax20 = private | StrMax20 of string
+type MaybeStrMax20 = private | MaybeStrMax20 of string option
 
-type StrMax7 = private StrMax7 of string
-type StrOf2 = private StrOf2 of string
-type MaybeStrMax7 = private MaybeStrMax7 of string option
+type StrMax2000 = private | StrMax2000 of string
 
-type StrMax60 = private StrMax60 of string
-type MaybeStrMax60 = private MaybeStrMax60 of (string option)
+type StrMax7 = private | StrMax7 of string
+type StrOf2 = private | StrOf2 of string
+type MaybeStrMax7 = private | MaybeStrMax7 of string option
 
-type StrMax120 = private StrMax120 of string
+type StrMax60 = private | StrMax60 of string
+type MaybeStrMax60 = private | MaybeStrMax60 of (string option)
 
-type StrMax15 = private StrMax15 of string
-type MaybeStrMax15 = private MaybeStrMax15 of string option
+type StrMax120 = private | StrMax120 of string
 
-type StrMax115 = private StrMax115 of string
+type StrMax15 = private | StrMax15 of string
+type MaybeStrMax15 = private | MaybeStrMax15 of string option
 
-type StrMax11 = private StrMax11 of string
+type StrMax115 = private | StrMax115 of string
+type MaybeStrMax115 = private | MaybeStrMax115 of string option
 
-type StrOf8 = private StrOf8 of string
+type StrMax11 = private | StrMax11 of string
 
-type StrMax80 = private StrMax80 of string
+type StrOf8 = private | StrOf8 of string
 
-type Dinheiro = private Dinheiro of decimal
-type MaybeDinheiro = private MaybeDinheiro of decimal option
+type StrMax80 = private | StrMax80 of string
 
-type Telefone = private Telefone of string
-type EmailAddress = private EmailAddress of StrMax80
+type Dinheiro = private | Dinheiro of decimal
+type MaybeDinheiro = private | MaybeDinheiro of decimal option
+
+type Telefone = private | Telefone of string
+type EmailAddress = private | EmailAddress of StrMax80
 
 type NaturezaOperacao =
-        private TributacaoMunicipio
-        | TributacaoForaMunicipio
-        | Isencao
-        | Imune
-        | ExigibilidadeSuspensa of NaturezaOperacaoExigibilidadeSuspensa
+    private
+    | TributacaoMunicipio
+    | TributacaoForaMunicipio
+    | Isencao
+    | Imune
+    | ExigibilidadeSuspensa of NaturezaOperacaoExigibilidadeSuspensa
 
 and NaturezaOperacaoExigibilidadeSuspensa =
-    private DecisaoJudicial
+    private
+    | DecisaoJudicial
     | ProcedimentoAdministrativo
-    
+
 type RegimeEspecialTributacao =
-        private | MicroempresaMunicipal
-        | Estimativa
-        | SociedadeProfissionais
-        | Cooperativa
-        | MicroempreendedorIndividual
-        | MicroempreendedorPequenoPorte
+    private
+    | MicroempresaMunicipal
+    | Estimativa
+    | SociedadeProfissionais
+    | Cooperativa
+    | MicroempreendedorIndividual
+    | MicroempreendedorPequenoPorte
 
-type CNPJ = private CNPJ of string
-type CPF = private CPF of string
+type CNPJ = private | CNPJ of string
+type CPF = private | CPF of string
 
-type MaybePercentage = private MaybePercentage of double option
+type MaybePercentage = private | MaybePercentage of double option
 
-let notEmpty (value: string): OperationResult<string,StringError> =
-    if String.IsNullOrWhiteSpace value then fail StringError.Missing else succeed value
-    
-let hasMaxLen (len: int) (value: string): OperationResult<string,StringError> =
-    if String.length value > len then MustNotBeLongerThan len |> fail else succeed value
-    
-let isBetween (start: int) (end': int) (value: string): OperationResult<string,StringError> =
-    if String.length value >=< (start, end') |> not then StringError.MustBeBetween (start, end') |> fail else succeed value
+let notEmpty (value: string) : OperationResult<string, StringError> =
+    if String.IsNullOrWhiteSpace value then
+        fail StringError.Missing
+    else
+        succeed value
 
-let isOfLen (len: int) (value: string): OperationResult<string,StringError> =
-    if String.length value <> len then MustHaveLen len |> fail else succeed value
-        
-let matchesPattern (pattern: string) (value: string): OperationResult<string,StringError> =
-    if Regex.IsMatch(value, pattern) |> not then StringError.DoesntMatchPattern value |> fail else succeed value
-    
+let hasMaxLen
+    (len: int)
+    (value: string)
+    : OperationResult<string, StringError>
+    =
+    if String.length value > len then
+        MustNotBeLongerThan len |> fail
+    else
+        succeed value
+
+let isBetween
+    (start: int)
+    (end': int)
+    (value: string)
+    : OperationResult<string, StringError>
+    =
+    if String.length value >=< (start, end') |> not then
+        StringError.MustBeBetween(start, end') |> fail
+    else
+        succeed value
+
+let isOfLen (len: int) (value: string) : OperationResult<string, StringError> =
+    if String.length value <> len then
+        MustHaveLen len |> fail
+    else
+        succeed value
+
+let matchesPattern
+    (pattern: string)
+    (value: string)
+    : OperationResult<string, StringError>
+    =
+    if Regex.IsMatch(value, pattern) |> not then
+        StringError.DoesntMatchPattern value |> fail
+    else
+        succeed value
+
 let notZeroInt value =
-    if value = 0 |> not then succeed value else fail NumberError.Missing
-    
+    if value = 0 |> not then
+        succeed value
+    else
+        fail NumberError.Missing
+
 let notZeroDecimal value =
-    if value = 0m |> not then succeed value else fail NumberError.Missing
-    
+    if value = 0m |> not then
+        succeed value
+    else
+        fail NumberError.Missing
+
 let notNegativeDecimal value =
-    if value >= 0m |> not then succeed value else fail NumberError.MustBePositive
-    
-let validateRules (value: 'a) (f: 'a -> 'b) (validators: ('a -> OperationResult<'c,'d>) list): OperationResult<'b,'d> =
-    let errors = validators |> List.map (fun x -> x value) |> mapFailureResults
-    
+    if value >= 0m |> not then
+        succeed value
+    else
+        fail NumberError.MustBePositive
+
+let validateRules
+    (value: 'a)
+    (f: 'a -> 'b)
+    (validators: ('a -> OperationResult<'c, 'd>) list)
+    : OperationResult<'b, 'd>
+    =
+    let errors =
+        validators
+        |> List.map (fun x -> x value)
+        |> mapFailureResults
+
     match errors with
     | [] -> f value |> succeed
     | _ -> failures errors
 
 let createMaxStringLen len value f =
-    [
-        notEmpty
-        hasMaxLen len
-    ] |> validateRules value f
-    
-let optionalMaxStringLen (len: int) (value: string option) (f: string option -> 'a): OperationResult<'a,StringError> =
-   match value with
-   | Some v -> Some >> f <!> hasMaxLen len v
-   | None ->  f None |> succeed
+    [ notEmpty
+      hasMaxLen len ]
+    |> validateRules value f
+
+let optionalMaxStringLen
+    (len: int)
+    (value: string option)
+    (f: string option -> 'a)
+    : OperationResult<'a, StringError>
+    =
+    match value with
+    | Some v -> Some >> f <!> hasMaxLen len v
+    | None -> f None |> succeed
 
 let stringOfLen len value f =
-    [
-        notEmpty
-        isOfLen len
-    ] |> validateRules value f
+    [ notEmpty
+      isOfLen len ]
+    |> validateRules value f
 
 module StrMax20 =
     let create value = createMaxStringLen 20 value StrMax20
@@ -149,7 +200,7 @@ module StrMax7 =
     let mapToValue (StrMax7 value) = value
 
     let mapToValueOptional (MaybeStrMax7 value) = value
-    
+
 module StrOf2 =
     let create value = stringOfLen 2 value StrOf2
 
@@ -158,7 +209,10 @@ module StrOf2 =
 module StrMax60 =
     let create value = createMaxStringLen 60 value StrMax60
 
-    let createOptional (value: string option): OperationResult<MaybeStrMax60,StringError> =
+    let createOptional
+        (value: string option)
+        : OperationResult<MaybeStrMax60, StringError>
+        =
         optionalMaxStringLen 60 value MaybeStrMax60
 
     let mapToValue (StrMax60 value) = value
@@ -181,10 +235,14 @@ module StrMax15 =
     let mapToValueOptional (MaybeStrMax15 value) = value
 
 module StrMax115 =
-    let create value =
-        createMaxStringLen 115 value StrMax115
+    let create value = createMaxStringLen 115 value StrMax115
+
+    let createOptional value =
+        optionalMaxStringLen 115 value MaybeStrMax115
 
     let mapToValue (StrMax115 value) = value
+
+    let mapToValueOptional (MaybeStrMax115 value) = value
 
 module StrMax11 =
     let create value = createMaxStringLen 11 value StrMax11
@@ -199,10 +257,9 @@ module StrMax80 =
 
 module Dinheiro =
     let create value =
-        [
-            notZeroDecimal
-            notNegativeDecimal
-        ] |> validateRules value Dinheiro
+        [ notZeroDecimal
+          notNegativeDecimal ]
+        |> validateRules value Dinheiro
 
     let createOptional value =
         match value with
@@ -217,21 +274,19 @@ module Dinheiro =
 
 module EmailAddress =
     let create value =
-        [
-          notEmpty
+        [ notEmpty
           matchesPattern "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-          hasMaxLen 80
-        ] |> validateRules value (StrMax80 >> EmailAddress) 
+          hasMaxLen 80 ]
+        |> validateRules value (StrMax80 >> EmailAddress)
 
-    let mapToValue (EmailAddress (StrMax80 value)) = value
+    let mapToValue (EmailAddress(StrMax80 value)) = value
 
 module Telefone =
     let create value =
-        [
-         notEmpty
-         isBetween 8 11
-         matchesPattern "^[0-9]+$"
-        ] |> validateRules value Telefone
+        [ notEmpty
+          isBetween 8 11
+          matchesPattern "^[0-9]+$" ]
+        |> validateRules value Telefone
 
     let mapValue (Telefone value) = value
 
@@ -246,7 +301,7 @@ module NaturezaOperacao =
         | 6 -> succeed (ExigibilidadeSuspensa ProcedimentoAdministrativo)
         | _ -> fail Invalid
 
-    let mapBack (value: NaturezaOperacao) =
+    let mapValue (value: NaturezaOperacao) =
         match value with
         | TributacaoMunicipio -> 1
         | TributacaoForaMunicipio -> 2
@@ -266,7 +321,7 @@ module RegimeEspecialTributacao =
         | 6 -> succeed MicroempreendedorPequenoPorte
         | _ -> Invalid value |> fail
 
-    let mapBack (value: RegimeEspecialTributacao) =
+    let mapValue (value: RegimeEspecialTributacao) =
         match value with
         | MicroempresaMunicipal -> 1
         | Estimativa -> 2
@@ -283,7 +338,8 @@ module CNPJ =
             let cnpjNumeros =
                 Regex.Replace(value, "\\D", "")
 
-            let error = StringError.DoesntMatchPattern value |> fail
+            let error =
+                StringError.DoesntMatchPattern value |> fail
 
             match cnpjNumeros with
             | s when String.length s <> 14 -> error
@@ -340,7 +396,8 @@ module CPF =
             let cpfNumeros =
                 Regex.Replace(value, "\\D", "")
 
-            let error = StringError.DoesntMatchPattern value |> fail
+            let error =
+                StringError.DoesntMatchPattern value |> fail
 
             match cpfNumeros with
             | s when String.length s <> 11 -> error
@@ -390,8 +447,8 @@ module Percentage =
     let createOptional value =
         match value with
         | Some v when v = 0.0 -> MaybePercentage None |> succeed
-        | Some v when v < 0.0 || v > 100.0 -> MustBeBetween (0, 100) |> fail
-        | Some v -> MaybePercentage (Some v) |> succeed
+        | Some v when v < 0.0 || v > 100.0 -> MustBeBetween(0, 100) |> fail
+        | Some v -> MaybePercentage(Some v) |> succeed
         | None -> MaybePercentage None |> succeed
 
 

@@ -15,7 +15,8 @@ and TomadorPessoaFisica =
       Cpf: CPF
       InscricaoMunicipal: MaybeStrMax15
       Endereco: Endereco option
-      Contato: Contato option }
+      Contato: Contato option
+      Nome: MaybeStrMax115 }
 
 and TomadorPessoaJuridica =
     { Id: Guid
@@ -25,9 +26,12 @@ and TomadorPessoaJuridica =
       Contato: Contato
       Endereco: Endereco }
 
-and TomadorEstrangeiro = TomadorEstrangeiro
+and TomadorEstrangeiro =
+    { Endereco: Endereco option
+      Contato: Contato option
+      RazaoSocial: MaybeStrMax115 }
 
-and Contato = { Id: Guid; Telefone: Telefone; Email: EmailAddress }
+and Contato = { Telefone: Telefone; Email: EmailAddress }
 
 let createInscricaoMunicipalTomador inscricaoMunicipal mapErrors =
     StrMax15.createOptional inscricaoMunicipal
@@ -43,8 +47,7 @@ let createEmail email =
             x.GetType().Name
             |> failwithf "%s não esperado para o campo email"
 
-    EmailAddress.create email
-    |> mapFailuresR mapErrors
+    EmailAddress.create email |> mapFailuresR mapErrors
 
 let createTelefone telefone =
     let mapErrors strError =
@@ -57,8 +60,7 @@ let createTelefone telefone =
             |> failwithf "%s não esperado para o campo telefone"
 
 
-    Telefone.create telefone
-    |> mapFailuresR mapErrors
+    Telefone.create telefone |> mapFailuresR mapErrors
 
 let createRazaoSocial razaoSocial =
     let mapErrors strError =
@@ -69,23 +71,20 @@ let createRazaoSocial razaoSocial =
             x.GetType().Name
             |> failwithf "%s não esperado para o campo Razao Social"
 
-    StrMax115.create razaoSocial
-    |> mapFailuresR mapErrors
+    StrMax115.create razaoSocial |> mapFailuresR mapErrors
 
-let createContato id telefone email =
-    { Id = id; Telefone = telefone; Email = email }
+let createContato telefone email = { Telefone = telefone; Email = email }
 
-let createContatoCompose id telefone email =
-    createContato id
-    <!> createTelefone telefone
+let createContatoCompose telefone email =
+    createContato <!> createTelefone telefone
     <*> createEmail email
 
-let createContatoPessoaFisica id telefone email =
-    createContatoCompose id telefone email
+let createContatoPessoaFisica telefone email =
+    createContatoCompose telefone email
     |> mapFailuresR PessoaFisicaErrors.ContatoInvalido
 
-let createContatoPessoaJuridica id telefone email =
-    createContatoCompose id telefone email
+let createContatoPessoaJuridica telefone email =
+    createContatoCompose telefone email
     |> mapFailuresR ContatoInvalido
 
 let createCnpjTomador cnpj =
@@ -97,8 +96,7 @@ let createCnpjTomador cnpj =
             x.GetType().Name
             |> failwithf "%s não esperado para o campo CNPJ"
 
-    CNPJ.create cnpj
-    |> mapFailuresR mapErrors
+    CNPJ.create cnpj |> mapFailuresR mapErrors
 
 let createCpf cpf =
     let mapErrors strError =
@@ -184,8 +182,7 @@ let createTomadorPessoaJuridica
           Endereco = endereco }
         |> PessoaJuridica
 
-    createTomadorPessoaJuridica' id
-    <!> cnpjResult
+    createTomadorPessoaJuridica' id <!> cnpjResult
     <*> inscricaoMunicipalResult
     <*> razaoSocialResult
     <*> contatoResult
@@ -199,21 +196,29 @@ let createTomadorPessoaFisica
     enderecoResult
     contatoResult
     =
-    let createTomadorPessoaFisica' id cpf inscricaoMunicipal endereco contato =
+    let createTomadorPessoaFisica'
+        id
+        cpf
+        inscricaoMunicipal
+        endereco
+        contato
+        nome
+        =
         { Id = id
           Cpf = cpf
           InscricaoMunicipal = inscricaoMunicipal
           Endereco = endereco
-          Contato = contato }
+          Contato = contato
+          Nome = nome }
         |> Some
         |> PessoaFisica
 
-    createTomadorPessoaFisica' id
-    <!> cpfResult
+    createTomadorPessoaFisica' id <!> cpfResult
     <*> inscricaoMunicipalResult
     <*> enderecoResult
     <*> contatoResult
     |> toNotaFiscalInvalida PessoaFisicaInvalida
 
-let tomadorEstrangeiro =
-    Estrangeiro TomadorEstrangeiro
+let tomadorEstrangeiro endereco contato razaoSocial =
+    Estrangeiro
+        { Endereco = endereco; Contato = contato; RazaoSocial = razaoSocial }

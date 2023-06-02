@@ -4,15 +4,26 @@ open System
 
 type NotaFiscalServicoStatus =
     | Pendente
+    | SolicitandoEmissao of SolicitandoEmissaoStatus
     | AguardandoAutorizacao of AguardandoAutorizacaoStatus
     | Autorizada of AutorizadaStatus
     | ErroAutorizacao of ErroAutorizacaoStatus
+    | SolicitandoCancelamento of SolicitandoCancelamentoStatus
     | Cancelada of CanceladaStatus
 
-and AguardandoAutorizacaoStatus = NumeroLote * NumeroProtocolo * DataEmissao * Rps
+and AguardandoAutorizacaoStatus =
+    NumeroLote * NumeroProtocolo * DataEmissao * Rps
+
+and SolicitandoEmissaoStatus = NumeroLote * DataEmissao * Rps
+
+and SolicitandoCancelamentoStatus =
+    DataEmissao * Rps * NumeroNota * CodigoCancelamento
+
 and AutorizadaStatus = DataEmissao * Rps * NumeroNota
 and ErroAutorizacaoStatus = DataEmissao * Rps * ErroComunicacao list
-and CanceladaStatus = DataEmissao * Rps * NumeroNota * CodigoCancelamento
+
+and CanceladaStatus =
+    DataEmissao * Rps * NumeroNota * CodigoCancelamento * DataCancelamento
 
 and ErroComunicacao =
     { Id: Guid
@@ -29,7 +40,8 @@ and TipoRps =
 
 and CodigoCancelamento = string
 and DataEmissao = DateTime
-and NumeroNota = int
+and DataCancelamento = DateTime
+and NumeroNota = string
 and NumeroProtocolo = string
 and NumeroLote = string
 and CodigoErro = string
@@ -38,7 +50,12 @@ and Correcao = string
 let createRps numero serie tipo =
     { Numero = numero; Serie = serie; Tipo = tipo }
 
-let createStatusAguardandoAutorizacao numeroLote numeroProtocolo dataEmissao rps =
+let createStatusAguardandoAutorizacao
+    numeroLote
+    numeroProtocolo
+    dataEmissao
+    rps
+    =
     (numeroLote, numeroProtocolo, dataEmissao, rps)
     |> AguardandoAutorizacao
 
@@ -49,6 +66,12 @@ let createStatusAutorizada dataEmissao notaSolicitadaEnvioData numeroNota =
 let createStatusErroAutorizacao dataEmissao rps errosComunicacoes =
     (dataEmissao, rps, errosComunicacoes) |> ErroAutorizacao
 
-let createStatusCancelada dataEmissao rps numeroNota codigoCancelamento =
-    (dataEmissao, rps, numeroNota, codigoCancelamento)
+let createStatusCancelada
+    dataEmissao
+    rps
+    numeroNota
+    codigoCancelamento
+    dataCancelamento
+    =
+    (dataEmissao, rps, numeroNota, codigoCancelamento, dataCancelamento)
     |> Cancelada
