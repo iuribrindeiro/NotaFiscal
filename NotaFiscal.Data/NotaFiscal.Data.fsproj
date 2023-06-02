@@ -1,22 +1,21 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="DbAutoGen.fs">
-      <Visible>False</Visible>
-    </Compile>
-    <Compile Include="Mappers/TomadorMapper.fs" />
-    <Compile Include="Mappers/NotaFiscalStatusMapper.fs" />
-    <Compile Include="Mappers/NotaFiscalMapper.fs" />
+    <Compile Include="DbAutoGen.fs" />
+    <Compile Include="DatabaseMappers\DatabaseTomadorMapper.fs" />
+    <Compile Include="DatabaseMappers\DatabaseNotaFiscalStatusMapper.fs" />
+    <Compile Include="DatabaseMappers\DatabaseNotaFiscalMapper.fs" />
     <Compile Include="NotaRepository.fs" />
-    <None Include="SQLScripts\1_CREATE_DATA_SCHEMA.sql" />
+    <Compile Include="Migrations/InitialSchema.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NotaFiscal.Domain\NotaFiscal.Domain.fsproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FluentMigrator" Version="3.3.2" />
+    <PackageReference Include="FluentMigrator.Extensions.SqlServer" Version="3.3.2" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.0" />
     <PackageReference Include="SqlHydra.Query" Version="1.2.1" />
   </ItemGroup>

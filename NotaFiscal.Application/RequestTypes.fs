@@ -1,47 +1,38 @@
 ﻿module NotaFiscal.WebApplication.RequestTypes
 
-type NotaFiscalServico =
-    { Prestador: Prestador
-      Tomador: Tomador
-      Servico: Servico }
+type ContatoRequestDto = { Telefone: string option; Email: string option }
 
-and InscricaoMunicipal = string option
-
-and CodigoMunicipio = string
-
-and Prestador =
-    { Cnpj: string
-      InscricaoMunicipal: InscricaoMunicipal }
-
-and Contato = { Telefone: string; Email: string }
-
-and Endereco =
-    { Rua: string
-      Numero: string
+and EnderecoRequestDto =
+    { Rua: string option
+      Numero: string option
       Complemento: string option
-      Bairro: string
-      CodigoMunicipio: CodigoMunicipio
-      UF: string
-      Cep: string }
+      Bairro: string option
+      CodigoMunicipio: string option
+      UF: string option
+      Cep: string option }
 
 
 and TomadorPessoaFisica =
-    { Cpf: string
-      InscricaoMunicipal: InscricaoMunicipal
-      Endereco: Endereco option
-      Contato: Contato option }
+    { Cpf: string option
+      InscricaoMunicipal: string option
+      Endereco: EnderecoRequestDto option
+      Contato: ContatoRequestDto option }
 
 and TomadorPessoaJuridica =
-    { Cnpj: string
-      InscricaoMunicipal: InscricaoMunicipal
-      RazaoSocial: string
-      Contato: Contato
-      Endereco: Endereco }
+    { Cnpj: string option
+      InscricaoMunicipal: string option
+      RazaoSocial: string option
+      Contato: ContatoRequestDto option
+      Endereco: EnderecoRequestDto option }
 
-and Tomador =
-    | PessoaFisica of TomadorPessoaFisica option
-    | PessoaJuridica of TomadorPessoaJuridica
-    | Estrangeiro
+and TomadorRequestDto =
+    { Cpf: string option
+      Cnpj: string option
+      InscricaoMunicipal: string option
+      Endereco: EnderecoRequestDto option
+      Contato: ContatoRequestDto option
+      Nome: string option
+      Estrangeiro: bool option }
 
 and RegimeEspecialTributacao =
     | MicroempresaMunicipal
@@ -67,32 +58,29 @@ and TipoRps =
     | NotaFiscalConjugadaMista
     | Cupom
 
-and Servico =
-    { Valores: Valores
-      ItemListaServico: string
-      CodigoTributacaoMunicipio: string option
-      Discriminacao: string
-      CodigoMunicipio: CodigoMunicipio
-      CodigoCnae: string
-      NaturezaOperacao: NaturezaOperacao
-      RegimeEspecialTributacao: RegimeEspecialTributacao
-      OptanteSimplesNacional: bool
-      IncentivadorCultural: bool }
-
-and Iss =
-    | Retido of decimal
-    | NaoRetido of decimal
-
-and Valores =
-    { Servicos: decimal
+type ValoresRequestDto =
+    { Servicos: decimal option
       Deducoes: decimal option
       Pis: decimal option
       Cofins: decimal option
       Inss: decimal option
       Ir: decimal option
       Csll: decimal option
-      Iss: Iss
+      ValorIss: decimal option
+      IssRetido: bool option
       OutrasRetencoes: decimal option
       DescontoCondicionado: decimal option
       DescontoIncondicionado: decimal option
       Aliquota: float option }
+
+type ServicoRequestDto =
+    { Valores: ValoresRequestDto option
+      ItemListaServico: string option
+      CodigoTributacaoMunicipio: string option
+      Discriminacao: string option
+      CodigoMunicipio: string option
+      CodigoCnae: string option
+      NaturezaOperacao: int option
+      RegimeEspecialTributacao: int option
+      OptanteSimplesNacional: bool option
+      IncentivadorCultural: bool option }

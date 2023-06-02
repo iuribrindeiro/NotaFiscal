@@ -46,304 +46,293 @@ module private DataReaderExtensions =
 module dbo =
     [<CLIMutable>]
     type Contato =
-        { Id: int
-          Telefone: string
-          Email: string }
+        { Email: string
+          Id: System.Guid
+          Telefone: string }
 
     let Contato = SqlHydra.Query.Table.table<Contato>
 
     [<CLIMutable>]
     type Endereco =
-        { Id: int
-          Rua: string
-          Numero: string
-          Complemento: Option<string>
-          Bairro: string
-          CodigoMunicipio: string
+        { Bairro: string
           Cep: string
-          Uf: string }
+          CodigoMunicipio: string
+          Complemento: Option<string>
+          Id: System.Guid
+          Numero: string
+          Rua: string }
 
     let Endereco = SqlHydra.Query.Table.table<Endereco>
 
     [<CLIMutable>]
     type ErroComunicacao =
-        { Id: int
-          NotaFiscalServicoId: int
-          CodigoErro: string
+        { CodigoErro: string
+          Correcao: Option<string>
+          Id: System.Guid
           Mensagem: string
-          Correcao: Option<string> }
+          NotaFiscalServicoId: System.Guid }
 
     let ErroComunicacao = SqlHydra.Query.Table.table<ErroComunicacao>
 
     [<CLIMutable>]
     type NaturezaOperacao =
-        { Id: int
+        { Descricao: string
           Discriminator: string
-          Descricao: string }
+          Id: int }
 
     let NaturezaOperacao = SqlHydra.Query.Table.table<NaturezaOperacao>
 
     [<CLIMutable>]
     type NotaFiscalServico =
-        { Id: int
-          Discriminator: string
-          [<SqlHydra.ProviderDbType("DateTime")>]
-          DataCriacao: System.DateTime
-          [<SqlHydra.ProviderDbType("DateTime")>]
-          DataAlteracao: Option<System.DateTime>
-          PrestadorCnpj: string
-          PrestadorInscricaoMunicipal: string
-          TomadorDiscriminator: string
-          TomadorId: Option<int>
-          ServicoRegimeEspecialTributacaoId: int
-          ServicoNaturezaOperacaoId: int
-          TipoRpsId: Option<int>
-          RpsNumero: Option<int>
-          RpsSerie: Option<string>
+        { CodigoCancelamento: Option<string>
+          CodigoCnae: Option<string>
+          CodigoTributacaoMunicipio: Option<string>
           [<SqlHydra.ProviderDbType("DateTime")>]
           DataEmissao: Option<System.DateTime>
-          NumeroNota: Option<int>
+          Discriminacao: string
+          Discriminator: string
+          Id: System.Guid
+          IncentivadorCultural: bool
+          ItemListaServico: string
+          MunicipioPrestacaoServico: string
           NumeroLote: Option<string>
-          CodigoCancelamento: Option<string>
-          ValoresServicos: decimal
-          ValoresDeducoes: Option<decimal>
-          ValoresPis: Option<decimal>
+          NumeroNota: Option<int>
+          NumeroProtocolo: Option<string>
+          OptanteSimplesNacional: bool
+          RpsNumero: Option<int>
+          RpsSerie: Option<string>
+          ServicoNaturezaOperacaoId: int
+          ServicoRegimeEspecialTributacaoId: int
+          TipoRpsId: Option<int>
+          TomadorDiscriminator: string
+          TomadorId: Option<System.Guid>
+          ValoresAliquota: Option<double>
           ValoresCofins: Option<decimal>
+          ValoresCsll: Option<decimal>
+          ValoresDeducoes: Option<decimal>
+          ValoresDescontoCondicionado: Option<decimal>
+          ValoresDescontoIncondicionado: Option<decimal>
           ValoresInss: Option<decimal>
           ValoresIr: Option<decimal>
-          ValoresCsll: Option<decimal>
           ValoresIss: decimal
           ValoresIssDiscriminator: string
           ValoresOutrasRetencoes: Option<decimal>
-          ValoresDescontoCondicionado: Option<decimal>
-          ValoresDescontoIncondicionado: Option<decimal>
-          ValoresAliquota: Option<double>
-          ItemListaServico: string
-          CodigoTributacaoMunicipio: Option<string>
-          Discriminacao: string
-          MunicipioPrestacaoServico: string
-          CodigoCnae: Option<string>
-          OptanteSimplesNacional: bool
-          IncentivadorCultural: bool }
+          ValoresPis: Option<decimal>
+          ValoresServicos: decimal }
 
     let NotaFiscalServico = SqlHydra.Query.Table.table<NotaFiscalServico>
 
     [<CLIMutable>]
     type RegimeEspecialTributacao =
-        { Id: int
+        { Descricao: string
           Discriminator: string
-          Descricao: string }
+          Id: int }
 
     let RegimeEspecialTributacao = SqlHydra.Query.Table.table<RegimeEspecialTributacao>
 
     [<CLIMutable>]
     type TipoRps =
-        { Id: int
+        { Descricao: string
           Discriminator: string
-          Descricao: string }
+          Id: int }
 
     let TipoRps = SqlHydra.Query.Table.table<TipoRps>
 
     [<CLIMutable>]
     type Tomador =
-        { Id: int
+        { ContatoId: Option<System.Guid>
           CpfCnpj: string
+          EnderecoId: Option<System.Guid>
+          Id: System.Guid
           InscricaoMunicipal: Option<string>
-          RazaoSocial: Option<string>
-          EnderecoId: Option<int>
-          ContatoId: Option<int> }
+          RazaoSocial: Option<string> }
 
     let Tomador = SqlHydra.Query.Table.table<Tomador>
 
     module Readers =
         type ContatoReader(reader: Microsoft.Data.SqlClient.SqlDataReader, getOrdinal) =
-            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
-            member __.Telefone = RequiredColumn(reader, getOrdinal, reader.GetString, "Telefone")
             member __.Email = RequiredColumn(reader, getOrdinal, reader.GetString, "Email")
+            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetGuid, "Id")
+            member __.Telefone = RequiredColumn(reader, getOrdinal, reader.GetString, "Telefone")
 
             member __.Read() =
-                { Contato.Id = __.Id.Read()
-                  Telefone = __.Telefone.Read()
-                  Email = __.Email.Read() }
+                { Contato.Email = __.Email.Read()
+                  Id = __.Id.Read()
+                  Telefone = __.Telefone.Read() }
 
             member __.ReadIfNotNull() =
                 if __.Id.IsNull() then None else Some(__.Read())
 
         type EnderecoReader(reader: Microsoft.Data.SqlClient.SqlDataReader, getOrdinal) =
-            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
-            member __.Rua = RequiredColumn(reader, getOrdinal, reader.GetString, "Rua")
-            member __.Numero = RequiredColumn(reader, getOrdinal, reader.GetString, "Numero")
-            member __.Complemento = OptionalColumn(reader, getOrdinal, reader.GetString, "Complemento")
             member __.Bairro = RequiredColumn(reader, getOrdinal, reader.GetString, "Bairro")
-            member __.CodigoMunicipio = RequiredColumn(reader, getOrdinal, reader.GetString, "CodigoMunicipio")
             member __.Cep = RequiredColumn(reader, getOrdinal, reader.GetString, "Cep")
+            member __.CodigoMunicipio = RequiredColumn(reader, getOrdinal, reader.GetString, "CodigoMunicipio")
+            member __.Complemento = OptionalColumn(reader, getOrdinal, reader.GetString, "Complemento")
+            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetGuid, "Id")
+            member __.Numero = RequiredColumn(reader, getOrdinal, reader.GetString, "Numero")
+            member __.Rua = RequiredColumn(reader, getOrdinal, reader.GetString, "Rua")
             member __.Uf = RequiredColumn(reader, getOrdinal, reader.GetString, "Uf")
 
             member __.Read() =
-                { Endereco.Id = __.Id.Read()
-                  Rua = __.Rua.Read()
-                  Numero = __.Numero.Read()
-                  Complemento = __.Complemento.Read()
-                  Bairro = __.Bairro.Read()
-                  CodigoMunicipio = __.CodigoMunicipio.Read()
+                { Endereco.Bairro = __.Bairro.Read()
                   Cep = __.Cep.Read()
-                  Uf = __.Uf.Read() }
+                  CodigoMunicipio = __.CodigoMunicipio.Read()
+                  Complemento = __.Complemento.Read()
+                  Id = __.Id.Read()
+                  Numero = __.Numero.Read()
+                  Rua = __.Rua.Read() }
 
             member __.ReadIfNotNull() =
                 if __.Id.IsNull() then None else Some(__.Read())
 
         type ErroComunicacaoReader(reader: Microsoft.Data.SqlClient.SqlDataReader, getOrdinal) =
-            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
-            member __.NotaFiscalServicoId = RequiredColumn(reader, getOrdinal, reader.GetInt32, "NotaFiscalServicoId")
             member __.CodigoErro = RequiredColumn(reader, getOrdinal, reader.GetString, "CodigoErro")
-            member __.Mensagem = RequiredColumn(reader, getOrdinal, reader.GetString, "Mensagem")
             member __.Correcao = OptionalColumn(reader, getOrdinal, reader.GetString, "Correcao")
+            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetGuid, "Id")
+            member __.Mensagem = RequiredColumn(reader, getOrdinal, reader.GetString, "Mensagem")
+            member __.NotaFiscalServicoId = RequiredColumn(reader, getOrdinal, reader.GetGuid, "NotaFiscalServicoId")
 
             member __.Read() =
-                { ErroComunicacao.Id = __.Id.Read()
-                  NotaFiscalServicoId = __.NotaFiscalServicoId.Read()
-                  CodigoErro = __.CodigoErro.Read()
+                { ErroComunicacao.CodigoErro = __.CodigoErro.Read()
+                  Correcao = __.Correcao.Read()
+                  Id = __.Id.Read()
                   Mensagem = __.Mensagem.Read()
-                  Correcao = __.Correcao.Read() }
+                  NotaFiscalServicoId = __.NotaFiscalServicoId.Read() }
 
             member __.ReadIfNotNull() =
                 if __.Id.IsNull() then None else Some(__.Read())
 
         type NaturezaOperacaoReader(reader: Microsoft.Data.SqlClient.SqlDataReader, getOrdinal) =
-            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
-            member __.Discriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "Discriminator")
             member __.Descricao = RequiredColumn(reader, getOrdinal, reader.GetString, "Descricao")
+            member __.Discriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "Discriminator")
+            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
 
             member __.Read() =
-                { NaturezaOperacao.Id = __.Id.Read()
+                { NaturezaOperacao.Descricao = __.Descricao.Read()
                   Discriminator = __.Discriminator.Read()
-                  Descricao = __.Descricao.Read() }
+                  Id = __.Id.Read() }
 
             member __.ReadIfNotNull() =
                 if __.Id.IsNull() then None else Some(__.Read())
 
         type NotaFiscalServicoReader(reader: Microsoft.Data.SqlClient.SqlDataReader, getOrdinal) =
-            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
+            member __.CodigoCancelamento = OptionalColumn(reader, getOrdinal, reader.GetString, "CodigoCancelamento")
+            member __.CodigoCnae = OptionalColumn(reader, getOrdinal, reader.GetString, "CodigoCnae")
+            member __.CodigoTributacaoMunicipio = OptionalColumn(reader, getOrdinal, reader.GetString, "CodigoTributacaoMunicipio")
+            member __.DataEmissao = OptionalColumn(reader, getOrdinal, reader.GetDateTime, "DataEmissao")
+            member __.Discriminacao = RequiredColumn(reader, getOrdinal, reader.GetString, "Discriminacao")
             member __.Discriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "Discriminator")
-            member __.DataCriacao = RequiredColumn(reader, getOrdinal, reader.GetDateTime, "DataCriacao")
-            member __.DataAlteracao = OptionalColumn(reader, getOrdinal, reader.GetDateTime, "DataAlteracao")
+            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetGuid, "Id")
+            member __.IncentivadorCultural = RequiredColumn(reader, getOrdinal, reader.GetBoolean, "IncentivadorCultural")
+            member __.ItemListaServico = RequiredColumn(reader, getOrdinal, reader.GetString, "ItemListaServico")
+            member __.MunicipioPrestacaoServico = RequiredColumn(reader, getOrdinal, reader.GetString, "MunicipioPrestacaoServico")
+            member __.NumeroLote = OptionalColumn(reader, getOrdinal, reader.GetString, "NumeroLote")
+            member __.NumeroNota = OptionalColumn(reader, getOrdinal, reader.GetInt32, "NumeroNota")
+            member __.NumeroProtocolo = OptionalColumn(reader, getOrdinal, reader.GetString, "NumeroProtocolo")
+            member __.OptanteSimplesNacional = RequiredColumn(reader, getOrdinal, reader.GetBoolean, "OptanteSimplesNacional")
             member __.PrestadorCnpj = RequiredColumn(reader, getOrdinal, reader.GetString, "PrestadorCnpj")
             member __.PrestadorInscricaoMunicipal = RequiredColumn(reader, getOrdinal, reader.GetString, "PrestadorInscricaoMunicipal")
-            member __.TomadorDiscriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "TomadorDiscriminator")
-            member __.TomadorId = OptionalColumn(reader, getOrdinal, reader.GetInt32, "TomadorId")
-            member __.ServicoRegimeEspecialTributacaoId = RequiredColumn(reader, getOrdinal, reader.GetInt32, "ServicoRegimeEspecialTributacaoId")
-            member __.ServicoNaturezaOperacaoId = RequiredColumn(reader, getOrdinal, reader.GetInt32, "ServicoNaturezaOperacaoId")
-            member __.TipoRpsId = OptionalColumn(reader, getOrdinal, reader.GetInt32, "TipoRpsId")
             member __.RpsNumero = OptionalColumn(reader, getOrdinal, reader.GetInt32, "RpsNumero")
             member __.RpsSerie = OptionalColumn(reader, getOrdinal, reader.GetString, "RpsSerie")
-            member __.DataEmissao = OptionalColumn(reader, getOrdinal, reader.GetDateTime, "DataEmissao")
-            member __.NumeroNota = OptionalColumn(reader, getOrdinal, reader.GetInt32, "NumeroNota")
-            member __.NumeroLote = OptionalColumn(reader, getOrdinal, reader.GetString, "NumeroLote")
-            member __.CodigoCancelamento = OptionalColumn(reader, getOrdinal, reader.GetString, "CodigoCancelamento")
-            member __.ValoresServicos = RequiredColumn(reader, getOrdinal, reader.GetDecimal, "ValoresServicos")
-            member __.ValoresDeducoes = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresDeducoes")
-            member __.ValoresPis = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresPis")
+            member __.ServicoNaturezaOperacaoId = RequiredColumn(reader, getOrdinal, reader.GetInt32, "ServicoNaturezaOperacaoId")
+            member __.ServicoRegimeEspecialTributacaoId = RequiredColumn(reader, getOrdinal, reader.GetInt32, "ServicoRegimeEspecialTributacaoId")
+            member __.TipoRpsId = OptionalColumn(reader, getOrdinal, reader.GetInt32, "TipoRpsId")
+            member __.TomadorDiscriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "TomadorDiscriminator")
+            member __.TomadorId = OptionalColumn(reader, getOrdinal, reader.GetGuid, "TomadorId")
+            member __.ValoresAliquota = OptionalColumn(reader, getOrdinal, reader.GetDouble, "ValoresAliquota")
             member __.ValoresCofins = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresCofins")
+            member __.ValoresCsll = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresCsll")
+            member __.ValoresDeducoes = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresDeducoes")
+            member __.ValoresDescontoCondicionado = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresDescontoCondicionado")
+            member __.ValoresDescontoIncondicionado = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresDescontoIncondicionado")
             member __.ValoresInss = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresInss")
             member __.ValoresIr = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresIr")
-            member __.ValoresCsll = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresCsll")
             member __.ValoresIss = RequiredColumn(reader, getOrdinal, reader.GetDecimal, "ValoresIss")
             member __.ValoresIssDiscriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "ValoresIssDiscriminator")
             member __.ValoresOutrasRetencoes = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresOutrasRetencoes")
-            member __.ValoresDescontoCondicionado = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresDescontoCondicionado")
-            member __.ValoresDescontoIncondicionado = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresDescontoIncondicionado")
-            member __.ValoresAliquota = OptionalColumn(reader, getOrdinal, reader.GetDouble, "ValoresAliquota")
-            member __.ItemListaServico = RequiredColumn(reader, getOrdinal, reader.GetString, "ItemListaServico")
-            member __.CodigoTributacaoMunicipio = OptionalColumn(reader, getOrdinal, reader.GetString, "CodigoTributacaoMunicipio")
-            member __.Discriminacao = RequiredColumn(reader, getOrdinal, reader.GetString, "Discriminacao")
-            member __.MunicipioPrestacaoServico = RequiredColumn(reader, getOrdinal, reader.GetString, "MunicipioPrestacaoServico")
-            member __.CodigoCnae = OptionalColumn(reader, getOrdinal, reader.GetString, "CodigoCnae")
-            member __.OptanteSimplesNacional = RequiredColumn(reader, getOrdinal, reader.GetBoolean, "OptanteSimplesNacional")
-            member __.IncentivadorCultural = RequiredColumn(reader, getOrdinal, reader.GetBoolean, "IncentivadorCultural")
+            member __.ValoresPis = OptionalColumn(reader, getOrdinal, reader.GetDecimal, "ValoresPis")
+            member __.ValoresServicos = RequiredColumn(reader, getOrdinal, reader.GetDecimal, "ValoresServicos")
 
             member __.Read() =
-                { NotaFiscalServico.Id = __.Id.Read()
+                { NotaFiscalServico.CodigoCancelamento = __.CodigoCancelamento.Read()
+                  CodigoCnae = __.CodigoCnae.Read()
+                  CodigoTributacaoMunicipio = __.CodigoTributacaoMunicipio.Read()
+                  DataEmissao = __.DataEmissao.Read()
+                  Discriminacao = __.Discriminacao.Read()
                   Discriminator = __.Discriminator.Read()
-                  DataCriacao = __.DataCriacao.Read()
-                  DataAlteracao = __.DataAlteracao.Read()
-                  PrestadorCnpj = __.PrestadorCnpj.Read()
-                  PrestadorInscricaoMunicipal = __.PrestadorInscricaoMunicipal.Read()
-                  TomadorDiscriminator = __.TomadorDiscriminator.Read()
-                  TomadorId = __.TomadorId.Read()
-                  ServicoRegimeEspecialTributacaoId = __.ServicoRegimeEspecialTributacaoId.Read()
-                  ServicoNaturezaOperacaoId = __.ServicoNaturezaOperacaoId.Read()
-                  TipoRpsId = __.TipoRpsId.Read()
+                  Id = __.Id.Read()
+                  IncentivadorCultural = __.IncentivadorCultural.Read()
+                  ItemListaServico = __.ItemListaServico.Read()
+                  MunicipioPrestacaoServico = __.MunicipioPrestacaoServico.Read()
+                  NumeroLote = __.NumeroLote.Read()
+                  NumeroNota = __.NumeroNota.Read()
+                  NumeroProtocolo = __.NumeroProtocolo.Read()
+                  OptanteSimplesNacional = __.OptanteSimplesNacional.Read()
                   RpsNumero = __.RpsNumero.Read()
                   RpsSerie = __.RpsSerie.Read()
-                  DataEmissao = __.DataEmissao.Read()
-                  NumeroNota = __.NumeroNota.Read()
-                  NumeroLote = __.NumeroLote.Read()
-                  CodigoCancelamento = __.CodigoCancelamento.Read()
-                  ValoresServicos = __.ValoresServicos.Read()
-                  ValoresDeducoes = __.ValoresDeducoes.Read()
-                  ValoresPis = __.ValoresPis.Read()
+                  ServicoNaturezaOperacaoId = __.ServicoNaturezaOperacaoId.Read()
+                  ServicoRegimeEspecialTributacaoId = __.ServicoRegimeEspecialTributacaoId.Read()
+                  TipoRpsId = __.TipoRpsId.Read()
+                  TomadorDiscriminator = __.TomadorDiscriminator.Read()
+                  TomadorId = __.TomadorId.Read()
+                  ValoresAliquota = __.ValoresAliquota.Read()
                   ValoresCofins = __.ValoresCofins.Read()
+                  ValoresCsll = __.ValoresCsll.Read()
+                  ValoresDeducoes = __.ValoresDeducoes.Read()
+                  ValoresDescontoCondicionado = __.ValoresDescontoCondicionado.Read()
+                  ValoresDescontoIncondicionado = __.ValoresDescontoIncondicionado.Read()
                   ValoresInss = __.ValoresInss.Read()
                   ValoresIr = __.ValoresIr.Read()
-                  ValoresCsll = __.ValoresCsll.Read()
                   ValoresIss = __.ValoresIss.Read()
                   ValoresIssDiscriminator = __.ValoresIssDiscriminator.Read()
                   ValoresOutrasRetencoes = __.ValoresOutrasRetencoes.Read()
-                  ValoresDescontoCondicionado = __.ValoresDescontoCondicionado.Read()
-                  ValoresDescontoIncondicionado = __.ValoresDescontoIncondicionado.Read()
-                  ValoresAliquota = __.ValoresAliquota.Read()
-                  ItemListaServico = __.ItemListaServico.Read()
-                  CodigoTributacaoMunicipio = __.CodigoTributacaoMunicipio.Read()
-                  Discriminacao = __.Discriminacao.Read()
-                  MunicipioPrestacaoServico = __.MunicipioPrestacaoServico.Read()
-                  CodigoCnae = __.CodigoCnae.Read()
-                  OptanteSimplesNacional = __.OptanteSimplesNacional.Read()
-                  IncentivadorCultural = __.IncentivadorCultural.Read() }
+                  ValoresPis = __.ValoresPis.Read()
+                  ValoresServicos = __.ValoresServicos.Read() }
 
             member __.ReadIfNotNull() =
                 if __.Id.IsNull() then None else Some(__.Read())
 
         type RegimeEspecialTributacaoReader(reader: Microsoft.Data.SqlClient.SqlDataReader, getOrdinal) =
-            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
-            member __.Discriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "Discriminator")
             member __.Descricao = RequiredColumn(reader, getOrdinal, reader.GetString, "Descricao")
+            member __.Discriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "Discriminator")
+            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
 
             member __.Read() =
-                { RegimeEspecialTributacao.Id = __.Id.Read()
+                { RegimeEspecialTributacao.Descricao = __.Descricao.Read()
                   Discriminator = __.Discriminator.Read()
-                  Descricao = __.Descricao.Read() }
+                  Id = __.Id.Read() }
 
             member __.ReadIfNotNull() =
                 if __.Id.IsNull() then None else Some(__.Read())
 
         type TipoRpsReader(reader: Microsoft.Data.SqlClient.SqlDataReader, getOrdinal) =
-            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
-            member __.Discriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "Discriminator")
             member __.Descricao = RequiredColumn(reader, getOrdinal, reader.GetString, "Descricao")
+            member __.Discriminator = RequiredColumn(reader, getOrdinal, reader.GetString, "Discriminator")
+            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
 
             member __.Read() =
-                { TipoRps.Id = __.Id.Read()
+                { TipoRps.Descricao = __.Descricao.Read()
                   Discriminator = __.Discriminator.Read()
-                  Descricao = __.Descricao.Read() }
+                  Id = __.Id.Read() }
 
             member __.ReadIfNotNull() =
                 if __.Id.IsNull() then None else Some(__.Read())
 
         type TomadorReader(reader: Microsoft.Data.SqlClient.SqlDataReader, getOrdinal) =
-            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetInt32, "Id")
+            member __.ContatoId = OptionalColumn(reader, getOrdinal, reader.GetGuid, "ContatoId")
             member __.CpfCnpj = RequiredColumn(reader, getOrdinal, reader.GetString, "CpfCnpj")
+            member __.EnderecoId = OptionalColumn(reader, getOrdinal, reader.GetGuid, "EnderecoId")
+            member __.Id = RequiredColumn(reader, getOrdinal, reader.GetGuid, "Id")
             member __.InscricaoMunicipal = OptionalColumn(reader, getOrdinal, reader.GetString, "InscricaoMunicipal")
             member __.RazaoSocial = OptionalColumn(reader, getOrdinal, reader.GetString, "RazaoSocial")
-            member __.EnderecoId = OptionalColumn(reader, getOrdinal, reader.GetInt32, "EnderecoId")
-            member __.ContatoId = OptionalColumn(reader, getOrdinal, reader.GetInt32, "ContatoId")
 
             member __.Read() =
-                { Tomador.Id = __.Id.Read()
+                { Tomador.ContatoId = __.ContatoId.Read()
                   CpfCnpj = __.CpfCnpj.Read()
-                  InscricaoMunicipal = __.InscricaoMunicipal.Read()
-                  RazaoSocial = __.RazaoSocial.Read()
                   EnderecoId = __.EnderecoId.Read()
-                  ContatoId = __.ContatoId.Read() }
+                  Id = __.Id.Read()
+                  InscricaoMunicipal = __.InscricaoMunicipal.Read()
+                  RazaoSocial = __.RazaoSocial.Read() }
 
             member __.ReadIfNotNull() =
                 if __.Id.IsNull() then None else Some(__.Read())
@@ -365,7 +354,7 @@ type HydraReader(reader: Microsoft.Data.SqlClient.SqlDataReader) =
     let lazydboEndereco = lazy (dbo.Readers.EnderecoReader(reader, buildGetOrdinal 8))
     let lazydboErroComunicacao = lazy (dbo.Readers.ErroComunicacaoReader(reader, buildGetOrdinal 5))
     let lazydboNaturezaOperacao = lazy (dbo.Readers.NaturezaOperacaoReader(reader, buildGetOrdinal 3))
-    let lazydboNotaFiscalServico = lazy (dbo.Readers.NotaFiscalServicoReader(reader, buildGetOrdinal 37))
+    let lazydboNotaFiscalServico = lazy (dbo.Readers.NotaFiscalServicoReader(reader, buildGetOrdinal 38))
     let lazydboRegimeEspecialTributacao = lazy (dbo.Readers.RegimeEspecialTributacaoReader(reader, buildGetOrdinal 3))
     let lazydboTipoRps = lazy (dbo.Readers.TipoRpsReader(reader, buildGetOrdinal 3))
     let lazydboTomador = lazy (dbo.Readers.TomadorReader(reader, buildGetOrdinal 6))
