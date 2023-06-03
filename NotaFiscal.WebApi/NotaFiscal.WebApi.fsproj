@@ -15,6 +15,7 @@
     <PackageReference Include="Thoth.Json.Net" Version="11.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NotaFiscal.Data.Mongo\NotaFiscal.Data.Mongo.csproj" />
     <ProjectReference Include="..\NotaFiscal.Domain\NotaFiscal.Domain.fsproj" />
     <ProjectReference Include="..\NotaFiscal.Application\NotaFiscal.WebApplication.fsproj" />
   </ItemGroup>

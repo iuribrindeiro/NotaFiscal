@@ -14,6 +14,6 @@
     <Compile Include="Servico/Servico.fs" />
     <Compile Include="NotaFiscalStatus.fs" />
     <Compile Include="NotaFiscalServico.fs" />
-    <Compile Include="DTO.fs" />
+    <Compile Include="Dto.fs" />
   </ItemGroup>
 </Project>

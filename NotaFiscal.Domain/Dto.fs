@@ -249,7 +249,7 @@ module StatusDto =
               CodigoCancelamento = None
               DataCancelamento = None }
         | ErroAutorizacao(dataEmissao, rps, errosComunicacao) ->
-            { Discriminator = nameof Autorizada
+            { Discriminator = nameof ErroAutorizacao
               NumeroLote = None
               NumeroProtocolo = None
               NumeroNota = None

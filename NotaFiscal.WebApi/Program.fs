@@ -1,55 +1,59 @@
+open System
+open System.Threading.Tasks
 open Falco
 open Falco.Routing
 open Falco.HostBuilder
-open NotaFiscal.Domain.ApplicationErrors
-open NotaFiscal.WebApplication.NotaFiscalRequests
+open Microsoft.AspNetCore.Http
+open Microsoft.Extensions.DependencyInjection
+open NotaFiscal.Data.Mongo
 
 type ApiErrors =
-    | FailedDeserializeJson
-    | DomainError of NotaFiscalErrors
+    | NotaFiscalNaoEncontrada
+    | FalhaComunicarBancoDados of FalhaComunicarBancoDados
 
-// let toApiResult (result: OperationResult<'a, ApiErrors>) =
-//     match result with
-//     | Success(x, _) -> Successful.OK x
-//     | Failure errors ->
-//         match errors with
-//         | [ FailedDeserializeJson ] ->
-//             RequestErrors.BAD_REQUEST "O request não pode ser deserializado"
-//         | _ -> RequestErrors.BAD_REQUEST errors
+let getRepository (ctx: HttpContext) =
+    ctx.RequestServices.GetRequiredService<INotaFiscalRepository>()
 
-let salvarNota r =
-    salvarNotaFiscal r
-    |> mapFailuresR DomainError
+let findNotaByIdAsync (ctx: HttpContext) id =
+    let repository = getRepository ctx
+    task {
+        let! notaFiscalResult = repository.FindByIdAsync id
+        
+        return notaFiscalResult
+               |> mapFailuresR FalhaComunicarBancoDados
+               >>= failIfNoneR NotaFiscalNaoEncontrada
+    }
+    
+let toApiResult result ctx =
+    match result with
+    | Success (e, _) -> Response.ofJson e ctx
+    | Failure [NotaFiscalNaoEncontrada]
+         -> (Response.withStatusCode 404 >> Response.ofPlainText "Not found") ctx
+    | _ -> (Response.withStatusCode 500 >> Response.ofPlainText "Erro inesperado") ctx
+    
 
-// let tryBindJson
-//     (ctx: HttpContext)
-//     : Task<OperationResult<CriarNotaFiscalRequest, ApiErrors>>
-//     =
-//     task {
-//         try
-//             let! model = ctx.BindJsonAsync<CriarNotaFiscalRequest>()
-//             return (model |> succeed)
-//         with ex ->
-//             return (fail FailedDeserializeJson)
-//     }
+let getIdFromRoute (ctx: HttpContext) =
+    let route = Request.getRoute ctx
+    route.GetString "id" |> Guid.Parse
 
-let postHandler: HttpHandler =
-    fun ctx ->
-        task {
-            let requestFromJson json =
-                FSharp.Json.Json.deserialize<CriarNotaFiscalRequest> json
+let getHandler: HttpHandler = 
+    task {
+        let! notaFiscal = getIdFromRoute ctx |> findNotaByIdAsync ctx
+        return notaFiscal |> toApiResult
+    }
 
-            let! json = Request.getBodyString ctx
+let configureServices (services: IServiceCollection) =
+    let config = configuration [||] {
+        required_json "appsettings.json"
+    }
+    
+    services.Configure<MongoDbOptions>(config.GetSection("MongoDb")) |> ignore
+    
+    services
+        .AddScoped<INotaFiscalRepository, NotaFiscalRepository>()
+        
 
-
-            let result (nota: CriarNotaFiscalRequest) =
-                if Option.isSome nota.Tomador then "some!" else "none!"
-
-
-            let request = requestFromJson json |> result
-
-            return Response.ofPlainText request ctx
-        }
-
-
-webHost [||] { endpoints [ post "/" postHandler ] }
+webHost [||] {
+    add_service configureServices
+    endpoints [ "/{id:guid}" (Request.mapRoute (getHandler)) ]
+}

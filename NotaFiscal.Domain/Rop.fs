@@ -17,8 +17,8 @@ let fail msg = Failure([ msg ])
 let failures msgs = Failure(msgs)
 
 let bindR
-    (result: OperationResult<'a, 'b>)
-    (f: 'a -> OperationResult<'c, 'b>)
+    result
+    f
     : OperationResult<'a, 'b>
     =
     match result with
@@ -26,7 +26,7 @@ let bindR
         let result' = f v
 
         match result' with
-        | Success _ -> Success(v, b)
+        | Success (v, r) -> Success(v, r)
         | Failure(msg') -> Failure(msg')
     | Failure(msgs) -> Failure(msgs)
 
@@ -70,6 +70,11 @@ let toResult fResult err =
     | Error _ -> fail err
 
 let hasAnyFailure results = results |> List.exists isFailure
+
+let failIfNoneR msg value =
+    match value with
+    | None -> fail msg
+    | Some x -> succeed x
 
 let traverseResult f value =
     match value with
