@@ -9,5 +9,5 @@ table_declarations = true
 [readers]
 reader_type = "Microsoft.Data.SqlClient.SqlDataReader"
 [filters]
-include = []
-exclude = []
+include = ["*.*"]
+exclude = ["dbo/NotaFiscalServico.DataCriacao", "dbo/NotaFiscalServico.DataAlteracao"]
