@@ -1,4 +1,4 @@
-module NotaFiscal.Domain.Servico.ValoresServico
+module NotaFiscal.Domain.ValoresServico
 
 open NotaFiscal.Domain.NotaFiscalPrimitives
 open NotaFiscal.Domain.ApplicationErrors
@@ -140,4 +140,4 @@ let createValoresServico
     <*> createAliquota aliquota
     <*> createValorDescontoIncondicionado descontoIncondicionado
     <*> createValorDescontoCondicionado descontoCondicionado
-    |> mapFailuresR ValoresInvalidos
+    |> mapFailuresR (ValoresInvalidos >> ServicoInvalido)

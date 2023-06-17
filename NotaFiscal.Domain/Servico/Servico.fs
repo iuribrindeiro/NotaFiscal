@@ -1,8 +1,8 @@
-module NotaFiscal.Domain.Servico.Servico
+module NotaFiscal.Domain.Servico
 
 open NotaFiscal.Domain.NotaFiscalPrimitives
 open NotaFiscal.Domain.ApplicationErrors
-open ValoresServico
+open NotaFiscal.Domain.ValoresServico
 
 
 type Servico =
@@ -73,7 +73,6 @@ let createRegimeEspecialTributacao regimeEspecialTributacao =
 
 
 let createServico
-    valoresOrError
     itemListaServico
     codigoTributacaoMunicipio
     discriminacao
@@ -85,7 +84,6 @@ let createServico
     incentivadorCultural
     =
     let createServico'
-        valores
         itemListaServico
         codigoTributacaoMunicipio
         discriminacao
@@ -95,6 +93,7 @@ let createServico
         regimeEspecialTributacao
         optanteSimplesNacional
         incentivadorCultural
+        valores
         : Servico
         =
         { Valores = valores
@@ -109,8 +108,7 @@ let createServico
           IncentivadorCultural = incentivadorCultural }
 
     createServico'
-        <!> valoresOrError
-        <*> createItemListaServico itemListaServico
+        <!> createItemListaServico itemListaServico
         <*> createCodigoTributacaoMunicipio codigoTributacaoMunicipio
         <*> createDiscriminacao discriminacao
         <*> createCodigoMunicipio codigoMunicipio

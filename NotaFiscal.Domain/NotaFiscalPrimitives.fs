@@ -167,6 +167,7 @@ let optionalMaxStringLen
     : OperationResult<'a, StringError>
     =
     match value with
+    | Some v when String.IsNullOrWhiteSpace v -> f None |> succeed
     | Some v -> Some >> f <!> hasMaxLen len v
     | None -> f None |> succeed
 

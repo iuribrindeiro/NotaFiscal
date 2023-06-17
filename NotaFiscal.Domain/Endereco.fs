@@ -97,7 +97,6 @@ let createCep cep =
     StrOf8.create cep |> mapFailuresR mapCepErrors
 
 let createEndereco
-    (id: Guid)
     (rua: string)
     (numero: string)
     (complemento: string option)

@@ -36,6 +36,10 @@ type PessoaFisicaErrors =
     //CPF
     | CPFIsRequired
     | CPFDoesntMatchPattern
+    
+    //Nome
+    | NomeMustNotBeMoreThan115Chars
+    
     //Inscricao Municipal
     | InscricaoMunicipalMustNotBeMoreThan15Chars
     | EnderecoInvalido of EnderecoError
@@ -59,9 +63,14 @@ type PessoaJuridicaErrors =
     | FailConvertEnderecoFromDb
     | FailConvertContatoFromDb
 
+type TomadorEstrangeiroErrors =
+    | NomeMustNotBeMoreThan115Chars
+    | EnderecoInvalido of EnderecoError
+    | ContatoInvalido of ContatoError
 type TomadorErrors =
     | PessoaFisicaInvalida of PessoaFisicaErrors
     | PessoaJuridicaInvalida of PessoaJuridicaErrors
+    | TomadorEstrangeiroInvalido of TomadorEstrangeiroErrors
 
 
 type IssErrors =

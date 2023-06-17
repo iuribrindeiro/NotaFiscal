@@ -11,16 +11,14 @@ type Tomador =
     | Estrangeiro of TomadorEstrangeiro
 
 and TomadorPessoaFisica =
-    { Id: Guid
-      Cpf: CPF
+    { Cpf: CPF
       InscricaoMunicipal: MaybeStrMax15
       Endereco: Endereco option
       Contato: Contato option
       Nome: MaybeStrMax115 }
 
 and TomadorPessoaJuridica =
-    { Id: Guid
-      Cnpj: CNPJ
+    { Cnpj: CNPJ
       InscricaoMunicipal: MaybeStrMax15
       RazaoSocial: StrMax115
       Contato: Contato
@@ -29,7 +27,7 @@ and TomadorPessoaJuridica =
 and TomadorEstrangeiro =
     { Endereco: Endereco option
       Contato: Contato option
-      RazaoSocial: MaybeStrMax115 }
+      Nome: MaybeStrMax115 }
 
 and Contato = { Telefone: Telefone; Email: EmailAddress }
 
@@ -66,7 +64,7 @@ let createRazaoSocial razaoSocial =
     let mapErrors strError =
         match strError with
         | StringError.Missing -> RazaoSocialIsRequired
-        | MustNotBeLongerThan 115 -> RazaoSocialMustNotBeMoreThan115Chars
+        | MustNotBeLongerThan 115 -> PessoaJuridicaErrors.RazaoSocialMustNotBeMoreThan115Chars
         | x ->
             x.GetType().Name
             |> failwithf "%s não esperado para o campo Razao Social"
@@ -81,11 +79,15 @@ let createContatoCompose telefone email =
 
 let createContatoPessoaFisica telefone email =
     createContatoCompose telefone email
-    |> mapFailuresR PessoaFisicaErrors.ContatoInvalido
+    |> mapFailuresR (PessoaFisicaErrors.ContatoInvalido >> PessoaFisicaInvalida >> TomadorInvalido)
 
 let createContatoPessoaJuridica telefone email =
     createContatoCompose telefone email
-    |> mapFailuresR ContatoInvalido
+    |> mapFailuresR (PessoaJuridicaErrors.ContatoInvalido >> PessoaJuridicaInvalida >> TomadorInvalido)
+    
+let createContatoTomadorEstrangeiro telefone email =
+    createContatoCompose telefone email
+    |> mapFailuresR (TomadorEstrangeiroErrors.ContatoInvalido >> TomadorEstrangeiroInvalido >> TomadorInvalido)
 
 let createCnpjTomador cnpj =
     let mapErrors strError =
@@ -120,6 +122,17 @@ let createInscricaoMunicipalTomadorFisico inscricaoMunicipal =
 
     createInscricaoMunicipalTomador inscricaoMunicipal mapErrors
 
+let createNomePessoaFisica nome =
+    let mapErrors strError =
+        match strError with
+        | MustNotBeLongerThan 115 ->
+            PessoaFisicaErrors.NomeMustNotBeMoreThan115Chars
+        | x ->
+            x.GetType().Name
+            |> failwithf "%s não esperado para o campo Nome do tomador de pessoa fisica"
+    
+    StrMax115.createOptional nome |> mapFailuresR mapErrors
+
 let createInscricaoMunicipalTomadorJuridico inscricaoMunicipal =
     let mapErrors strError =
         match strError with
@@ -131,7 +144,6 @@ let createInscricaoMunicipalTomadorJuridico inscricaoMunicipal =
     createInscricaoMunicipalTomador inscricaoMunicipal mapErrors
 
 let createEnderecoPessoaFisica
-    id
     rua
     numero
     complemento
@@ -139,11 +151,10 @@ let createEnderecoPessoaFisica
     codigoMunicipio
     cep
     =
-    createEndereco id rua numero complemento bairro codigoMunicipio cep
-    |> mapFailuresR PessoaFisicaErrors.EnderecoInvalido
+    createEndereco rua numero complemento bairro codigoMunicipio cep
+    |> mapFailuresR (PessoaFisicaErrors.EnderecoInvalido >> PessoaFisicaInvalida >> TomadorInvalido)
 
 let createEnderecoPessoaJuridica
-    id
     rua
     numero
     complemento
@@ -151,61 +162,79 @@ let createEnderecoPessoaJuridica
     codigoMunicipio
     cep
     =
-    createEndereco id rua numero complemento bairro codigoMunicipio cep
-    |> mapFailuresR EnderecoInvalido
+    createEndereco rua numero complemento bairro codigoMunicipio cep
+    |> mapFailuresR (PessoaJuridicaErrors.EnderecoInvalido >> PessoaJuridicaInvalida >> TomadorInvalido)
 
+let createEnderecoTomadorEstrangeiro
+    rua
+    numero
+    complemento
+    bairro
+    codigoMunicipio
+    cep
+    =
+    createEndereco rua numero complemento bairro codigoMunicipio cep
+    |> mapFailuresR (TomadorEstrangeiroErrors.EnderecoInvalido >> TomadorEstrangeiroInvalido >> TomadorInvalido)
 
 let toNotaFiscalInvalida status =
     mapFailuresR (status >> TomadorInvalido)
 
 let createTomadorPessoaJuridica
-    id
-    cnpjResult
-    inscricaoMunicipalResult
-    razaoSocialResult
-    enderecoResult
-    contatoResult
+    cnpj
+    incricaoMunicipal
+    razaoSocial
     =
     let createTomadorPessoaJuridica'
-        id
         cnpj
         inscricaoMunicipal
         razaoSocial
         contato
         endereco
         =
-        { Id = id
-          Cnpj = cnpj
+        { Cnpj = cnpj
           InscricaoMunicipal = inscricaoMunicipal
           RazaoSocial = razaoSocial
           Contato = contato
           Endereco = endereco }
         |> PessoaJuridica
 
-    createTomadorPessoaJuridica' id <!> cnpjResult
-    <*> inscricaoMunicipalResult
-    <*> razaoSocialResult
-    <*> contatoResult
-    <*> enderecoResult
+    createTomadorPessoaJuridica'
+        <!> createCnpjTomador cnpj
+        <*> createInscricaoMunicipalTomadorJuridico incricaoMunicipal
+        <*> createRazaoSocial razaoSocial
     |> toNotaFiscalInvalida PessoaJuridicaInvalida
 
+let createNomeTomadorEstrangeiro nome =
+    let mapErrors strError =
+        match strError with
+        | MustNotBeLongerThan 115 -> TomadorEstrangeiroErrors.NomeMustNotBeMoreThan115Chars
+        | x ->
+            x.GetType().Name
+            |> failwithf "%s não esperado para o campo Razao Social"
+    
+    StrMax115.createOptional nome |> mapFailuresR mapErrors
+
+let createTomadorEstrangeiro nome =
+    let createTomadorEstrangeiro' nome endereco contato =
+        { Nome = nome; Contato = contato; Endereco = endereco } |> Estrangeiro
+        
+    createTomadorEstrangeiro'
+        <!> createNomeTomadorEstrangeiro nome
+    |> toNotaFiscalInvalida TomadorEstrangeiroInvalido
+
 let createTomadorPessoaFisica
-    id
-    cpfResult
-    inscricaoMunicipalResult
-    enderecoResult
-    contatoResult
+    cpf
+    inscricaoMunicipal
+    nome
     =
     let createTomadorPessoaFisica'
-        id
         cpf
         inscricaoMunicipal
+        nome
         endereco
         contato
-        nome
         =
-        { Id = id
-          Cpf = cpf
+        { Cpf = cpf
           InscricaoMunicipal = inscricaoMunicipal
           Endereco = endereco
           Contato = contato
@@ -213,12 +242,13 @@ let createTomadorPessoaFisica
         |> Some
         |> PessoaFisica
 
-    createTomadorPessoaFisica' id <!> cpfResult
-    <*> inscricaoMunicipalResult
-    <*> enderecoResult
-    <*> contatoResult
+    createTomadorPessoaFisica'
+        <!> createCpf cpf
+        <*> createInscricaoMunicipalTomadorFisico inscricaoMunicipal
+        <*> createNomePessoaFisica nome
+    
     |> toNotaFiscalInvalida PessoaFisicaInvalida
 
 let tomadorEstrangeiro endereco contato razaoSocial =
     Estrangeiro
-        { Endereco = endereco; Contato = contato; RazaoSocial = razaoSocial }
+        { Endereco = endereco; Contato = contato; Nome = razaoSocial }

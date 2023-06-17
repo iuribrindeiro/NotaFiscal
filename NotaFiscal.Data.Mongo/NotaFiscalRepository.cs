@@ -8,12 +8,15 @@ using static Rop;
 
 namespace NotaFiscal.Data.Mongo;
 
-public record struct FalhaComunicarBancoDados; 
+public interface INotaFiscalRepositoryErro {}
+
+public record struct FalhaComunicarBancoDados : INotaFiscalRepositoryErro;
+public record struct NotaNaoEncontrada : INotaFiscalRepositoryErro;
 
 
 public interface INotaFiscalRepository
 {
-    Task<OperationResult<FSharpOption<NotaFiscalServicoDto>, FalhaComunicarBancoDados>> FindByIdAsync(Guid id);
+    Task<OperationResult<NotaFiscalServicoDto, INotaFiscalRepositoryErro>> FindByIdAsync(Guid id);
 }
 
 public class NotaFiscalRepository : INotaFiscalRepository
@@ -23,6 +26,7 @@ public class NotaFiscalRepository : INotaFiscalRepository
 
     public NotaFiscalRepository(IOptions<MongoDbOptions> mongoDbOptions, ILogger<NotaFiscalRepository> logger)
     {
+        var lol = typeof(NotaFiscalRepository);
         _logger = logger;
         var options = mongoDbOptions.Value;
         _notasFiscaisCollection = new MongoClient(options.ConnectionString)
@@ -30,27 +34,26 @@ public class NotaFiscalRepository : INotaFiscalRepository
             .GetCollection<NotaFiscalServicoDto>(nameof(NotaFiscalServicoDto));
     }
 
-    public async Task<OperationResult<FSharpOption<NotaFiscalServicoDto>, FalhaComunicarBancoDados>> FindByIdAsync(Guid id)
+    public async Task<OperationResult<NotaFiscalServicoDto, INotaFiscalRepositoryErro>> FindByIdAsync(Guid id)
     {
         try
         {
             var notaFiscal = await _notasFiscaisCollection.AsQueryable().FirstOrDefaultAsync(e => e.Id == id);
             if (notaFiscal is null)
-                return succeed<FSharpOption<NotaFiscalServicoDto>, FalhaComunicarBancoDados>(FSharpOption<NotaFiscalServicoDto>.None);
+                return fail<INotaFiscalRepositoryErro, NotaFiscalServicoDto>(new NotaNaoEncontrada());
             
-            notaFiscal.Tomador.Cnpj.
-            return succeed<FSharpOption<NotaFiscalServicoDto>, FalhaComunicarBancoDados>(notaFiscal);
+            return succeed<NotaFiscalServicoDto, INotaFiscalRepositoryErro>(notaFiscal);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Falha ao comunicar com o banco de dados");
-            return fail<FalhaComunicarBancoDados, FSharpOption<NotaFiscalServicoDto>>(new FalhaComunicarBancoDados());
+            return fail<INotaFiscalRepositoryErro, NotaFiscalServicoDto>(new FalhaComunicarBancoDados());
         }
     }
 }
 
 public record MongoDbOptions
 {
-    public string ConnectionString { get; init; }
-    public string DatabaseName { get; init; }
+    public string ConnectionString { get; init; } = string.Empty;
+    public string DatabaseName { get; init; } = string.Empty;
 }
