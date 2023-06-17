@@ -59,12 +59,18 @@ let createStatusAguardandoAutorizacao
     (numeroLote, numeroProtocolo, dataEmissao, rps)
     |> AguardandoAutorizacao
 
-let createStatusAutorizada dataEmissao notaSolicitadaEnvioData numeroNota =
-    (dataEmissao, notaSolicitadaEnvioData, numeroNota)
+let createStatusAutorizada dataEmissao rps numeroNota =
+    (dataEmissao, rps, numeroNota)
     |> Autorizada
 
 let createStatusErroAutorizacao dataEmissao rps errosComunicacoes =
     (dataEmissao, rps, errosComunicacoes) |> ErroAutorizacao
+
+let createStatusSolicitandoEmissao numeroLote dataEmissao rps =
+    (numeroLote, dataEmissao, rps) |> SolicitandoEmissao
+    
+let createStatusSolicitandoCancelamento numeroNota dataEmissao rps codigoCancelamento =
+    (dataEmissao, rps, numeroNota, codigoCancelamento) |> SolicitandoCancelamento
 
 let createStatusCancelada
     dataEmissao
