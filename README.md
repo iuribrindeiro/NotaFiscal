@@ -1,6 +1,6 @@
 # F# NotaFiscal App
 
-After learning a little bit of Elm I decided to go a little bit deeper into what functional programming would look like, particularly in the .NET ecosystem.
+After learning a little bit of [Elm](https://elm-lang.org/) I decided to go a little bit deeper into what functional programming would look like, particularly in the .NET ecosystem.
 
 I have always been a lover of C# and all its strongly typed capabilities. Learning functional has been a blast for me since it is even more strongly typed and at the same type less verbose than C#/Java or other OO languages I was used to. The biggest 2 advantages of functional for me are:
 
