@@ -2,6 +2,7 @@
 
 open System
 open NotaFiscal.Domain
+open NotaFiscal.Domain.ApplicationErrors
 
 type NotaFiscalServicoDto =
     { Id: Guid; Tomador: TomadorDto.TomadorDto; Servico: ServicoDto.ServicoDto; Status: StatusDto.StatusDto }

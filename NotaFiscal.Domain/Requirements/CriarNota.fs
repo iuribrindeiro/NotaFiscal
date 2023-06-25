@@ -1,6 +1,7 @@
 ﻿module NotaFiscal.Domain.Requirements.CriarNota
 
 open System
+open NotaFiscal.Domain.ApplicationErrors
 open NotaFiscal.Domain.Dto.ServicoDto
 open NotaFiscal.Domain.NotaFiscalStatus
 open NotaFiscal.Domain.NotaFiscalServico
@@ -19,4 +20,5 @@ let criarNota dto =
         dto.Id
         <!> toTomadorDomain dto.Tomador
         <*> toServicoDomain dto.Servico
+    |> mapFailuresR ValidationError
         

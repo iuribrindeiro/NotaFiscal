@@ -8,48 +8,23 @@ open Falco.HostBuilder
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.DependencyInjection
 open MongoDB.Driver
-open NotaFiscal.Data
 open NotaFiscal.Data.NotaFiscalRepository
 open NotaFiscal.Domain
-open NotaFiscal.Domain.Dto.Errors
+open NotaFiscal.Domain.ApplicationErrors
 open NotaFiscal.Domain.Dto.NotaFiscalServicoDto
 open NotaFiscal.Domain.Requirements.CriarNota
 
-type ApiErrors =
-    | NotFound of string
-    | UnprocessableEntity of NotaFiscalMapDomainErrors
-    | DeserializationFail
-    | InternalServerError
-
-let getNotaFiscalCollection (ctx: HttpContext) =
-    ctx.RequestServices.GetRequiredService<IMongoCollection<NotaFiscalServicoDto>>()
-
-
-let findNotaByIdAsync (ctx: HttpContext) id =
-    let mongoCollection = getNotaFiscalCollection ctx
-    task {
-        let! notaFiscalResult = findNotaNotaById mongoCollection id
-        
-        let mapErrors (error: DatabaseError) =
-            match error with
-            | DatabaseError.NotFound(entity, id) -> NotFound $"{entity} com id {id} não encontrada"
-            | DatabaseError.DatabaseException _ -> InternalServerError
-            | FailedToDeserialize _ -> InternalServerError
-        
-        return notaFiscalResult
-               |> mapFailuresR mapErrors
-    }
 
 let isUnprocessableEntity err =
     match err with
-    | UnprocessableEntity _ -> true
+    | ValidationError _ -> true
     | _ -> false
 
-let toApiResult result ctx =
+let toApiResult ctx result =
     match result with
     | Success (e, _) -> Response.ofJson e ctx
-    | Failure [NotFound message]
-         -> (Response.withStatusCode 404 >> Response.ofPlainText message) ctx
+    | Failure [NotFound (resource, id)]
+         -> (Response.withStatusCode 404 >> Response.ofPlainText $"Could not find {resource} by id {id}") ctx
     | Failure f when List.exists isUnprocessableEntity f 
          -> (Response.withStatusCode 422 >> Response.ofPlainText "Unprocessable entity") ctx
     | _ -> (Response.withStatusCode 500 >> Response.ofPlainText "Erro inesperado") ctx
@@ -57,15 +32,34 @@ let toApiResult result ctx =
 let toApiResultAsync ctx taskResult: Task =
     task {
         let! result = taskResult
-        return! toApiResult result ctx
+        return! toApiResult ctx result
     }
+
+let getNotaFiscalCollection (ctx: HttpContext) =
+    ctx.RequestServices.GetRequiredService<IMongoCollection<NotaFiscalServicoDto>>()
+
+let findNotaByIdAsync (ctx: HttpContext) (id: Guid) =
+    let mongoCollection = getNotaFiscalCollection ctx
+    findNotaNotaById mongoCollection id
+    
+let salvarNotaFiscalAsync ctx nota =
+    let mongoCollection = getNotaFiscalCollection ctx
+    salvarNota mongoCollection nota
     
 
 let deserializeRequest handler =
     let options = JsonSerializerOptions()
     options.DefaultIgnoreCondition <- JsonIgnoreCondition.WhenWritingNull
+    options.PropertyNameCaseInsensitive <- true
     
-    Request.mapJsonOption options handler
+    let tryDeserialize (handler: 'T -> 'a -> Task) (json: string) =
+        try
+            let req = JsonSerializer.Deserialize<'T>(json, options)
+            handler req
+        with _ -> Response.withStatusCode 422 >> Response.ofPlainText $"Invalid request body."
+            
+    
+    Request.bodyString (tryDeserialize handler)
 
 let getIdFromRoute (ctx: HttpContext) =
     let route = Request.getRoute ctx
@@ -90,20 +84,15 @@ let configureServices (services: IServiceCollection) =
         .AddSingleton<MongoClient>(mongoClientFactory)
         .AddScoped<IMongoCollection<NotaFiscalServicoDto>>(notaFiscalCollectionFactory)
         
-let getHandler (ctx: HttpContext): Task = 
-    task {
-        let! notaFiscalResult = getIdFromRoute ctx |> findNotaByIdAsync ctx
-        return! toApiResult notaFiscalResult ctx
-    }
+let getHandler (ctx: HttpContext) = 
+    getIdFromRoute ctx
+        |> findNotaByIdAsync ctx
+        |> toApiResultAsync ctx
 
 
-let postHandler (request: CriarNotaDto) (ctx: HttpContext) =
-    let collection = getNotaFiscalCollection ctx
-    let salvar nota = (salvarNota collection nota) |> mapFailuresRAsync (fun _ -> InternalServerError)
-    
-    criarNota request
-        |> mapFailuresR UnprocessableEntity
-    >>= salvar
+let postHandler (req: CriarNotaDto) (ctx: HttpContext) =
+    criarNota req
+        >>= salvarNotaFiscalAsync ctx
     |> toApiResultAsync ctx
     
     

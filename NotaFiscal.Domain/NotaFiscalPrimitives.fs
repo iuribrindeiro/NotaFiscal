@@ -149,7 +149,7 @@ let validateRules
     let errors =
         validators
         |> List.map (fun x -> x value)
-        |> mapFailureResults
+        |> aggregateFailuresR
 
     match errors with
     | [] -> f value |> succeed

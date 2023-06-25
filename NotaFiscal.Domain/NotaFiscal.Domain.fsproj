@@ -14,7 +14,6 @@
     <Compile Include="Servico/Servico.fs" />
     <Compile Include="NotaFiscalStatus.fs" />
     <Compile Include="NotaFiscalServico.fs" />
-    <Compile Include="Dto\Errors.fs" />
     <Compile Include="Dto\StatusDto.fs" />
     <Compile Include="Dto\TomadorDto.fs" />
     <Compile Include="Dto\ServicoDto.fs" />

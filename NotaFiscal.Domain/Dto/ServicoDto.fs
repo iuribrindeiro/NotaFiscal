@@ -5,7 +5,7 @@ open NotaFiscal.Domain.NotaFiscalPrimitives
 open NotaFiscal.Domain.Servico
 open NotaFiscal.Domain.ValoresServico
 open NotaFiscal.Domain.Rop
-open NotaFiscal.Domain.Dto.Errors
+open NotaFiscal.Domain.ApplicationErrors
 
 type ServicoDto =
     { Valores: ValoresDto
@@ -88,12 +88,11 @@ let toValoresDomain (valoresDto: ValoresDto) =
         <| Option.ofNullable valoresDto.DescontoCondicionado
         <| Option.ofNullable valoresDto.DescontoIncondicionado
         <| Option.ofNullable valoresDto.Aliquota
-    |> mapFailuresR InvalidData
     
 
 let toServicoDomain (servicoDto: ServicoDto) =
     match box servicoDto with
-    | null -> MissingData ServicoIsRequired |> fail
+    | null -> ServicoIsRequired |> fail
     | _ ->
         createServico
             <| servicoDto.ItemListaServico
@@ -105,5 +104,4 @@ let toServicoDomain (servicoDto: ServicoDto) =
             <| servicoDto.RegimeEspecialTributacao
             <| servicoDto.OptanteSimplesNacional
             <| servicoDto.IncentivadorCultural
-        |> mapFailuresR InvalidData
-        <*> mapNullToR servicoDto.Valores toValoresDomain (ValoresServicoIsRequired |> MissingData)
+        <*> mapNullToR servicoDto.Valores toValoresDomain (ValoresIsRequired |> ServicoInvalido)

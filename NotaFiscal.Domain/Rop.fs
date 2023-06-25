@@ -59,7 +59,7 @@ module Rop =
             let msgs = List.map f msgs
             Failure(msgs)
             
-    let mapFailureResults results =
+    let aggregateFailuresR results =
         List.map
             (function
             | Success _ -> []

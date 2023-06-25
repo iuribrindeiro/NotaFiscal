@@ -1,10 +1,11 @@
 ﻿module NotaFiscal.Domain.Dto.TomadorDto
 
+open System
 open NotaFiscal.Domain.Endereco
 open NotaFiscal.Domain.NotaFiscalPrimitives
+open NotaFiscal.Domain.ApplicationErrors
 open NotaFiscal.Domain.Tomador
 open NotaFiscal.Domain.Rop
-open NotaFiscal.Domain.Dto.Errors
 
 type TomadorDto =
     { Discriminator: string
@@ -24,6 +25,8 @@ and EnderecoDto =
       Cep: string }
 
 and ContatoDto = { Telefone: string; Email: string }
+
+let toLowerInvariant (s: string) = if String.IsNullOrWhiteSpace s then s else s.ToLowerInvariant()
 
 let mapEnderecoFromDomain (endereco: Endereco) =
     { Rua = endereco.Rua |> StrMax120.mapToValue
@@ -70,9 +73,12 @@ let fromTomadorEstrangeiro (tomador: TomadorEstrangeiro) =
       Cnpj = null
       Cpf = null
       InscricaoMunicipal = null
-      Nome = StrMax115.mapToValueOptional tomador.Nome |> Option.defaultValue null
-      Endereco = Option.map mapEnderecoFromDomain tomador.Endereco |> Option.defaultValue Unchecked.defaultof<EnderecoDto>
-      Contato = Option.map mapContatoFromDomain tomador.Contato |> Option.defaultValue Unchecked.defaultof<ContatoDto> }
+      Nome = StrMax115.mapToValueOptional tomador.Nome
+             |> Option.defaultValue null
+      Endereco = Option.map mapEnderecoFromDomain tomador.Endereco
+                 |> Option.defaultValue Unchecked.defaultof<EnderecoDto>
+      Contato = Option.map mapContatoFromDomain tomador.Contato
+                |> Option.defaultValue Unchecked.defaultof<ContatoDto> }
 
 let fromTomadorDomain (tomador: Tomador) : TomadorDto =
     match tomador with
@@ -100,7 +106,6 @@ let toTomadorDomain (tomadorDto: TomadorDto) =
         
     let toEnderecoPessoaJuridicaDomain (enderecoDto: EnderecoDto) =
         createEndereco enderecoDto createEnderecoPessoaJuridica
-        |> mapFailuresR InvalidData
     
     let toContatoPessoaFisicaDomain (contatoDto: ContatoDto) =
         createContato contatoDto createContatoPessoaFisica
@@ -108,40 +113,34 @@ let toTomadorDomain (tomadorDto: TomadorDto) =
         
     let toContatoPessoaJuridicaDomain (contatoDto: ContatoDto) =
         createContato contatoDto createContatoPessoaJuridica
-        |> mapFailuresR InvalidData
         
     let toEnderedoTomadorEstrangeiroDomain (enderecoDto: EnderecoDto) =
         createEndereco enderecoDto createEnderecoTomadorEstrangeiro
         |> mapR Some
-        |> mapFailuresR InvalidData
         
     let toContatoTomadorEstrangeiroDomain (contatoDto: ContatoDto) =
         createContato contatoDto createContatoTomadorEstrangeiro
         |> mapR Some
-        |> mapFailuresR InvalidData
               
     match box tomadorDto with
-    | null -> MissingData TomadorIsRequired |> fail
-    | _ when tomadorDto.Discriminator = nameof PessoaFisica ->
+    | null -> TomadorIsRequired |> fail
+    | _ when tomadorDto.Discriminator |> toLowerInvariant = (nameof PessoaFisica |> toLowerInvariant) ->
         createTomadorPessoaFisica
             <| tomadorDto.Cpf
             <| Some tomadorDto.InscricaoMunicipal
             <| Some tomadorDto.Nome
             <*> mapNullToOptR tomadorDto.Endereco toEnderecoPessoaFisicaDomain
             <*> mapNullToOptR tomadorDto.Contato toContatoPessoaFisicaDomain
-        |> mapFailuresR InvalidData
-    | _ when tomadorDto.Discriminator = nameof PessoaJuridica ->
+    | _ when tomadorDto.Discriminator |> toLowerInvariant = (nameof PessoaJuridica |> toLowerInvariant) ->
         createTomadorPessoaJuridica
             <| tomadorDto.Cnpj
             <| Some tomadorDto.InscricaoMunicipal
             <| tomadorDto.Nome
-        |> mapFailuresR InvalidData
-        <*> mapNullToR tomadorDto.Contato toContatoPessoaJuridicaDomain (ContatoPessoaJuridicaIsRequired |> MissingData)
-        <*> mapNullToR tomadorDto.Endereco toEnderecoPessoaJuridicaDomain (EnderecoPessoaJuridicaIsRequired |> MissingData)
-    | _ when tomadorDto.Discriminator = nameof Estrangeiro ->
+        <*> mapNullToR tomadorDto.Contato toContatoPessoaJuridicaDomain (ContatoIsRequired |> PessoaJuridicaInvalida |> TomadorInvalido)
+        <*> mapNullToR tomadorDto.Endereco toEnderecoPessoaJuridicaDomain (EnderecoIsRequired |> PessoaJuridicaInvalida |> TomadorInvalido)
+    | _ when tomadorDto.Discriminator |> toLowerInvariant = (nameof Estrangeiro |> toLowerInvariant) ->
         createTomadorEstrangeiro
             <| Some tomadorDto.Nome
-        |> mapFailuresR InvalidData
         <*> mapNullToOptR tomadorDto.Endereco toEnderedoTomadorEstrangeiroDomain
         <*> mapNullToOptR tomadorDto.Contato toContatoTomadorEstrangeiroDomain
     | _ -> PessoaFisica None |> succeed

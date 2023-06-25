@@ -1,5 +1,7 @@
 module NotaFiscal.Domain.ApplicationErrors
 
+open System
+
 type EnderecoError =
     //Rua
     | RuaIsRequired
@@ -127,15 +129,18 @@ type NotaFiscalStatusInvalido =
     | EmptyErroComunicacaoFromDb
     | InvalidStatus
 
-type NotaFiscalErrors =
+type ValidationError =
     | TomadorIsRequired
     | TomadorInvalido of TomadorErrors
     | ServicoIsRequired
     | ServicoInvalido of ServicoErros
-    //Internal Error
-    | NotaFiscalStatusInvalido of NotaFiscalStatusInvalido
-    | FailToConvertTomadorFromDbError
-    | FailToConvertContatoFromDbError
-    | FailToConvertEnderecoFromDbError
-    | FailToSaveNotaDb of exn
-    | FailToGetNotasFromDb of exn
+    
+type InternalServerError =
+    | DatabaseException of Exception
+    | FailedDeserializeFromDb of ValidationError
+
+type NotaFiscalErrors =
+    | ValidationError of ValidationError
+    | NotFound of string * string
+    | InternalServerError of InternalServerError
+    
