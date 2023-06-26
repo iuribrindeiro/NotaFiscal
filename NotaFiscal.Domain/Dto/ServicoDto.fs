@@ -5,7 +5,7 @@ open NotaFiscal.Domain.NotaFiscalPrimitives
 open NotaFiscal.Domain.Servico
 open NotaFiscal.Domain.ValoresServico
 open NotaFiscal.Domain.Rop
-open NotaFiscal.Domain.ApplicationErrors
+open NotaFiscal.Domain.DomainEvents
 
 type ServicoDto =
     { Valores: ValoresDto

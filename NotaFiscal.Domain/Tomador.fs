@@ -1,6 +1,6 @@
 module NotaFiscal.Domain.Tomador
 
-open NotaFiscal.Domain.ApplicationErrors
+open NotaFiscal.Domain.DomainEvents
 open NotaFiscal.Domain.NotaFiscalPrimitives
 open Endereco
 open System

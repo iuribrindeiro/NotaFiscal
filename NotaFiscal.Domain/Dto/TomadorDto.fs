@@ -3,7 +3,7 @@
 open System
 open NotaFiscal.Domain.Endereco
 open NotaFiscal.Domain.NotaFiscalPrimitives
-open NotaFiscal.Domain.ApplicationErrors
+open NotaFiscal.Domain.DomainEvents
 open NotaFiscal.Domain.Tomador
 open NotaFiscal.Domain.Rop
 

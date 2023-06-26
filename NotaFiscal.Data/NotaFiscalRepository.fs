@@ -5,7 +5,7 @@ open MongoDB.Driver.Linq
 open NotaFiscal.Domain.Dto.NotaFiscalServicoDto
 open NotaFiscal.Domain.NotaFiscalServico
 open NotaFiscal.Domain.Rop
-open NotaFiscal.Domain.ApplicationErrors
+open NotaFiscal.Domain.DomainEvents
 
 module NotaFiscalRepository =
     let findNotaNotaById (collection: IMongoCollection<NotaFiscalServicoDto>) id =

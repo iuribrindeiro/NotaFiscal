@@ -1,11 +1,10 @@
 namespace NotaFiscal.Domain
 
 open System.Threading.Tasks
+open System
 
 [<AutoOpen>]
 module Rop =
-
-    open System
 
 
     type OperationResult<'TSuccess, 'TErrorMessage> =
@@ -21,6 +20,16 @@ module Rop =
     let fail msg = Failure([ msg ])
 
     let failures msgs = Failure(msgs)
+    
+    let teeR f result =
+        match result with
+        | Success(v, msgs) ->
+            let result' = f v
+
+            match result' with
+            | Success (v, r) -> Success(v, r @ msgs)
+            | Failure(msg') -> Failure(msg' @ msgs)
+        | Failure(msgs) -> Failure(msgs)
 
     let bindR
         result
@@ -28,12 +37,12 @@ module Rop =
         : OperationResult<'a, 'b>
         =
         match result with
-        | Success(v, b) ->
+        | Success(v, msgs) ->
             let result' = f v
 
             match result' with
-            | Success (v, r) -> Success(v, r)
-            | Failure(msg') -> Failure(msg')
+            | Success (v, r) -> Success(v, r @ msgs)
+            | Failure(msg') -> Failure(msg' @ msgs)
         | Failure(msgs) -> Failure(msgs)
 
     let mapR f result =
@@ -41,13 +50,17 @@ module Rop =
         | Success(v, msg) -> Success(f v, msg)
         | Failure(msgs) -> Failure(msgs)
 
+    let mapMsgR f result =
+        match result with
+        | Success(v, msgs) -> Success(v, [f v] @ msgs)
+        | Failure(msgs) -> Failure(msgs)
+    
     let applyR f result =
         match f, result with
         | Success(f, msgs1), Success(x, msgs2) -> (f x, msgs1 @ msgs2) |> Success
         | Failure errs, Success(_, msgs)
         | Success(_, msgs), Failure errs -> errs @ msgs |> Failure
         | Failure errs1, Failure errs2 -> errs1 @ errs2 |> Failure
-
 
     let mapFailuresR f result =
         match result with
@@ -140,6 +153,25 @@ module Rop =
                     return match result' with
                             | Success (v, r) -> Success(v, r)
                             | Failure(msg') -> Failure(msg')   
+                }
+            | Failure(msgs) -> Failure(msgs) |> Task.FromResult
+            
+        let mapRAsync resultRAsync f =
+            task {
+                let! resultR = resultRAsync
+                
+                return mapR f resultR
+            }
+        let checkRAsync resultR f =
+            match resultR with
+            | Success(v, msgs) ->
+                task {
+                    let! result' = f v
+
+                    return
+                        match result' with
+                        | Success (_, r) -> Success(v, r @ msgs)
+                        | Failure(msg') -> Failure(msg' @ msgs)   
                 }
             | Failure(msgs) -> Failure(msgs) |> Task.FromResult
             

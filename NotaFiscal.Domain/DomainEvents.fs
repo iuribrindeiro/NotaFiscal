@@ -1,6 +1,7 @@
-module NotaFiscal.Domain.ApplicationErrors
+module NotaFiscal.Domain.DomainEvents
 
 open System
+open NotaFiscal.Domain.NotaFiscalServico
 
 type EnderecoError =
     //Rua
@@ -139,8 +140,9 @@ type InternalServerError =
     | DatabaseException of Exception
     | FailedDeserializeFromDb of ValidationError
 
-type NotaFiscalErrors =
+type DomainEvents =
     | ValidationError of ValidationError
     | NotFound of string * string
     | InternalServerError of InternalServerError
+    | NotaFiscalCriada of NotaFiscalServico
     

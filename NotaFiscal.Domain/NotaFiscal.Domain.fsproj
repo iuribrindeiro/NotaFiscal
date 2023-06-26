@@ -6,7 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Rop.fs" />
-    <Compile Include="ApplicationErrors.fs" />
     <Compile Include="NotaFiscalPrimitives.fs" />
     <Compile Include="Endereco.fs" />
     <Compile Include="Tomador.fs" />
@@ -14,6 +13,7 @@
     <Compile Include="Servico/Servico.fs" />
     <Compile Include="NotaFiscalStatus.fs" />
     <Compile Include="NotaFiscalServico.fs" />
+    <Compile Include="DomainEvents.fs" />
     <Compile Include="Dto\StatusDto.fs" />
     <Compile Include="Dto\TomadorDto.fs" />
     <Compile Include="Dto\ServicoDto.fs" />

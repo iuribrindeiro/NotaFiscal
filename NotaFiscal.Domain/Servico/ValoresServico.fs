@@ -1,7 +1,7 @@
 module NotaFiscal.Domain.ValoresServico
 
 open NotaFiscal.Domain.NotaFiscalPrimitives
-open NotaFiscal.Domain.ApplicationErrors
+open NotaFiscal.Domain.DomainEvents
 
 type Valores =
     { Servicos: Dinheiro

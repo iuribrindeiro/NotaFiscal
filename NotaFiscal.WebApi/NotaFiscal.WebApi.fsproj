@@ -4,6 +4,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="RouteUtils.fs" />
+    <Compile Include="NotaFiscalRoutesUtils.fs" />
+    <Compile Include="NotaFiscalRoutes.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

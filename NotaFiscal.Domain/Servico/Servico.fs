@@ -1,7 +1,7 @@
 module NotaFiscal.Domain.Servico
 
 open NotaFiscal.Domain.NotaFiscalPrimitives
-open NotaFiscal.Domain.ApplicationErrors
+open NotaFiscal.Domain.DomainEvents
 open NotaFiscal.Domain.ValoresServico
 
 
