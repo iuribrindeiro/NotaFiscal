@@ -1,7 +1,7 @@
+[<Microsoft.FSharp.Core.AutoOpen>]
 module NotaFiscal.Domain.DomainEvents
 
 open System
-open NotaFiscal.Domain.NotaFiscalServico
 
 type EnderecoError =
     //Rua
@@ -39,10 +39,10 @@ type PessoaFisicaErrors =
     //CPF
     | CPFIsRequired
     | CPFDoesntMatchPattern
-    
+
     //Nome
     | NomeMustNotBeMoreThan115Chars
-    
+
     //Inscricao Municipal
     | InscricaoMunicipalMustNotBeMoreThan15Chars
     | EnderecoInvalido of EnderecoError
@@ -70,6 +70,7 @@ type TomadorEstrangeiroErrors =
     | NomeMustNotBeMoreThan115Chars
     | EnderecoInvalido of EnderecoError
     | ContatoInvalido of ContatoError
+
 type TomadorErrors =
     | PessoaFisicaInvalida of PessoaFisicaErrors
     | PessoaJuridicaInvalida of PessoaJuridicaErrors
@@ -109,40 +110,83 @@ type ServicoErros =
     | NaturezaOperacaoInvalida
     | RegimeEspecialTributacaoInvalido
 
+type RpsErrors =
+    | NumeroIsRequired
+    | NumeroMustBePositive
+    | SerieIsRequired
+    | SerieMustNotBeMoreThan5Chars
+    | TipoInvalid
+    | RpsIsRequired
 
-//Internal Error
-type NotaFiscalStatusInvalido =
-    | DataEmissaoVazia
-    | NumeroRpsInvalido
-    | NumeroRpsVazio
-    | TipoRpsVazio
-    | TipoRpsInvalido
-    | SerieRpsVazia
-    | SerieRpsInvalida
-    | NumeroProtocoloVazio
-    | NumeroNotaInvalido
-    | CodigoErroComunicacaoVazio
-    | MensagemAlertaVazia
-    | CorrecaoInvalida
-    | CodigoCancelamentoInvalido
-    | CodigoCancelamentoVazio
-    | FailConvertMensagemRetornoFromDb
-    | EmptyErroComunicacaoFromDb
-    | InvalidStatus
+
+type SolicitandoEmissaoErrors =
+    | RpsInvalido of RpsErrors
+    | DataEmissaoIsRequired
+    | DataEmissaoMustBeLessThanNow
+    | NumeroLoteMustBePositive
+
+type AguardandoAutorizacaoErrors =
+    | NumeroLoteMustBePositive
+    | ProtocoloIsRequired
+    | DataEmissaoMustBeLessThanNow
+    | RpsInvalido of RpsErrors
+
+type AutorizadaErrors =
+    | NumeroNotaMustBePositive
+    | DataEmissaoMustBeLessThanNow
+    | RpsInvalido of RpsErrors
+
+
+type ErroComunicacaoValidationErrs =
+    | MensagemIsRequired
+    | CodigoMensagemIsRequired
+
+type ErroEmissaoErrors =
+    | DataEmissaoMustBeLessThanNow
+    | RpsInvalido of RpsErrors
+    | ErrosComunicacao of ErroComunicacaoValidationErrs
+
+
+type SolicitandoCancelamentoErrors =
+    | NumeroNotaMustBePositive
+    | RpsInvalido of RpsErrors
+    | DataEmissaoMustBeLessThanNow
+    | CodigoCancelamentoIsRequired
+
+type CanceladaErros =
+    | NumeroNotaMustBePositive
+    | RpsInvalido of RpsErrors
+    | DataEmissaoMustBeLessThanNow
+    | CodigoCancelamentoIsRequired
+    | DataCancelamentoMustBeLessOrEqualThanNow
+
+type StatusNotaInvalidoErrs =
+    | SolicitandoEmissaoErrors of SolicitandoEmissaoErrors
+    | AguardandoAutorizacaoErrors of AguardandoAutorizacaoErrors
+    | AutorizadaErrors of AutorizadaErrors
+    | ErroEmissaoErrors of ErroEmissaoErrors
+    | SolicitandoCancelamentoErrors of SolicitandoCancelamentoErrors
+    | CanceladaErros of CanceladaErros
+
 
 type ValidationError =
     | TomadorIsRequired
     | TomadorInvalido of TomadorErrors
     | ServicoIsRequired
     | ServicoInvalido of ServicoErros
-    
-type InternalServerError =
-    | DatabaseException of Exception
+    | StatusNotaInvalido of StatusNotaInvalidoErrs
+
+type DatabaseError =
+    | NotFound of string * string
+    | FailedCommunicateDb of Exception
     | FailedDeserializeFromDb of ValidationError
 
-type DomainEvents =
+type Errors =
     | ValidationError of ValidationError
-    | NotFound of string * string
-    | InternalServerError of InternalServerError
-    | NotaFiscalCriada of NotaFiscalServico
-    
+    | DatabaseError of DatabaseError
+
+type DomainEvents = | NotaFiscalCriada of Guid
+
+type DomainMessages =
+    | Erros of Errors
+    | DomainEvents of DomainEvents

@@ -1,18 +1,19 @@
 ﻿module NotaFiscal.Domain.Dto.StatusDto
 
 open System
-open NotaFiscal.Domain.NotaFiscalStatus
-open NotaFiscal.Domain.Rop
+open NotaFiscal.Domain
+open NotaFiscal.Domain.Entities.NotaFiscalStatus
+open NotaFiscal.Domain.Entities.NotaFiscalStatus.NotaFiscalStatusUtils
 
 type StatusDto =
     { Discriminator: string
-      NumeroLote: string
+      NumeroLote: int
       NumeroProtocolo: string
-      DataCancelamento: DateTime Nullable
+      DataCancelamento: DateTime option
       NumeroNota: string
-      DataEmissao: DateTime Nullable
-      ErrosComunicacao: ErroComunicacaoDto list
-      Rps: RpsDto
+      DataEmissao: DateTime
+      ErrosComunicacao: ErroComunicacaoDto list option
+      Rps: RpsDto option
       CodigoCancelamento: string }
 
 and ErroComunicacaoDto =
@@ -20,18 +21,14 @@ and ErroComunicacaoDto =
       CodigoMensagemAlerta: string
       Mensagem: string
       Correcao: string }
-    
+
 and RpsDto = { Numero: int; Serie: string; Tipo: int }
 
 
 let fromRpsDomain (rps: Rps) : RpsDto =
-    let tipoRpsDto =
-        match rps.Tipo with
-        | Rps -> 1
-        | NotaFiscalConjugadaMista -> 2
-        | Cupom -> 3
-
-    { Numero = rps.Numero; Serie = rps.Serie; Tipo = tipoRpsDto }
+    { Numero = rps.Numero |> PositiveInt.mapToValue
+      Serie = rps.Serie |> StrMax5.mapToValue
+      Tipo = rps.Tipo |> TipoRps.mapValue }
 
 let fromErrosComunicacaoDomain
     (errorsComunicacao: ErroComunicacao list)
@@ -48,134 +45,131 @@ let fromStatusDomain (status: NotaFiscalServicoStatus) : StatusDto =
     match status with
     | Pendente ->
         { Discriminator = nameof Pendente
-          NumeroLote = null
+          NumeroLote = 0
           NumeroProtocolo = null
           NumeroNota = null
-          DataEmissao = Nullable()
-          ErrosComunicacao = []
-          Rps = Unchecked.defaultof<RpsDto>
+          DataEmissao = None
+          ErrosComunicacao = None
+          Rps = None
           CodigoCancelamento = null
-          DataCancelamento = Nullable() }
+          DataCancelamento = None }
     | SolicitandoEmissao(numeroLote, dataEmissao, rps) ->
         { Discriminator = nameof SolicitandoEmissao
-          NumeroLote = numeroLote
+          NumeroLote = numeroLote |> PositiveInt.mapToValue
           NumeroProtocolo = null
           NumeroNota = null
-          DataEmissao = Nullable dataEmissao
-          ErrosComunicacao = []
-          Rps = fromRpsDomain rps
+          DataEmissao = dataEmissao |> PastDate.mapToValue |> Some
+          ErrosComunicacao = None
+          Rps = fromRpsDomain rps |> Some
           CodigoCancelamento = null
-          DataCancelamento = Nullable() }
+          DataCancelamento = None }
     | AguardandoAutorizacao(numeroLote, protocolo, dataEmissao, rps) ->
         { Discriminator = nameof AguardandoAutorizacao
-          NumeroLote = numeroLote
+          NumeroLote = numeroLote |> PositiveInt.mapToValue
           NumeroProtocolo = protocolo
           NumeroNota = null
-          DataEmissao = Nullable dataEmissao
-          ErrosComunicacao = []
-          Rps = fromRpsDomain rps
+          DataEmissao = dataEmissao |> PastDate.mapToValue |> Some
+          ErrosComunicacao = None
+          Rps = fromRpsDomain rps |> Some
           CodigoCancelamento = null
-          DataCancelamento = Nullable() }
+          DataCancelamento = None }
     | Autorizada(dataEmissao, rps, numeroNota) ->
         { Discriminator = nameof Autorizada
-          NumeroLote = null
+          NumeroLote = 0
           NumeroProtocolo = null
           NumeroNota = numeroNota
-          DataEmissao = Nullable dataEmissao
-          ErrosComunicacao = []
-          Rps = fromRpsDomain rps
+          DataEmissao = dataEmissao |> PastDate.mapToValue |> Some
+          ErrosComunicacao = None
+          Rps = fromRpsDomain rps |> Some
           CodigoCancelamento = null
-          DataCancelamento = Nullable() }
+          DataCancelamento = None }
     | ErroAutorizacao(dataEmissao, rps, errosComunicacao) ->
         { Discriminator = nameof ErroAutorizacao
-          NumeroLote = null
+          NumeroLote = 0
           NumeroProtocolo = null
           NumeroNota = null
-          DataEmissao = Nullable dataEmissao
-          ErrosComunicacao =
-            fromErrosComunicacaoDomain errosComunicacao
-          Rps = fromRpsDomain rps
+          DataEmissao = dataEmissao |> PastDate.mapToValue |> Some
+          ErrosComunicacao = fromErrosComunicacaoDomain errosComunicacao |> Some
+          Rps = fromRpsDomain rps |> Some
           CodigoCancelamento = null
-          DataCancelamento = Nullable() }
-    | SolicitandoCancelamento(dataEmissao,
-                              rps,
-                              numeroNota,
-                              codigoCancelamento) ->
+          DataCancelamento = None }
+    | SolicitandoCancelamento(dataEmissao, rps, numeroNota, codigoCancelamento) ->
         { Discriminator = nameof SolicitandoCancelamento
-          NumeroLote = null
+          NumeroLote = 0
           NumeroProtocolo = null
           NumeroNota = numeroNota
-          DataEmissao = Nullable dataEmissao
-          ErrosComunicacao = []
-          Rps = fromRpsDomain rps
-          CodigoCancelamento = codigoCancelamento
-          DataCancelamento = Nullable() }
+          DataEmissao = dataEmissao |> PastDate.mapToValue |> Some
+          ErrosComunicacao = None
+          Rps = fromRpsDomain rps |> Some
+          CodigoCancelamento = codigoCancelamento |> NotEmptyStr.mapToValue
+          DataCancelamento = None }
     | Cancelada(dataEmissao,
                 rps,
                 numeroNota,
                 codigoCancelamento,
                 dataCancelamento) ->
         { Discriminator = nameof Cancelada
-          NumeroLote = null
+          NumeroLote = 0
           NumeroProtocolo = null
           NumeroNota = numeroNota
-          DataEmissao = Nullable dataEmissao
-          ErrosComunicacao = []
-          Rps = fromRpsDomain rps
-          CodigoCancelamento = codigoCancelamento
-          DataCancelamento = Nullable dataCancelamento }
+          DataEmissao = dataEmissao |> PastDate.mapToValue |> Some
+          ErrosComunicacao = None
+          Rps = fromRpsDomain rps |> Some
+          CodigoCancelamento = codigoCancelamento |> NotEmptyStr.mapToValue
+          DataCancelamento = Some dataCancelamento }
 
-let toTipoRpsDto tipoRps =
-    match tipoRps with
-    | 1 -> Rps
-    | 2 -> NotaFiscalConjugadaMista
-    | _ -> Cupom
-let toRpsDomain (rpsDto: RpsDto): Rps =
-    { Numero = rpsDto.Numero; Serie = rpsDto.Serie; Tipo = toTipoRpsDto rpsDto.Tipo }
-    
-let toErroComunicacaoDomain (erroComunicacaoDto: ErroComunicacaoDto): ErroComunicacao =
+let toRpsDomain (rpsDto: RpsDto) : OperationResult<Rps, RpsErrors> =
+    createRps rpsDto.Numero rpsDto.Serie rpsDto.Tipo
+
+let toErroComunicacaoDomain
+    (erroComunicacaoDto: ErroComunicacaoDto)
+    : ErroComunicacao
+    =
     { Id = erroComunicacaoDto.Id
       Correcao = strToOptionStr erroComunicacaoDto.Correcao
       Mensagem = erroComunicacaoDto.Mensagem
       CodigoMensagemAlerta = erroComunicacaoDto.CodigoMensagemAlerta }
-        
+
+let defaultRps =
+    { Numero = 1; Serie = "1"; Tipo = 1 }
+
 let toStatusDomain (statusDto: StatusDto) =
     match statusDto.Discriminator with
     | nameof Pendente -> Pendente
     | nameof SolicitandoEmissao ->
         createStatusSolicitandoEmissao
-            <| statusDto.NumeroLote
-            <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
-            <| toRpsDomain statusDto.Rps
+            statusDto.NumeroLote
+            statusDto.DataEmissao
+            (toRpsDomain (statusDto.Rps |> Option.defaultValue defaultRps))
     | nameof AguardandoAutorizacao ->
         createStatusAguardandoAutorizacao
-            <| statusDto.NumeroLote
-            <| statusDto.NumeroProtocolo
-            <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
-            <| toRpsDomain statusDto.Rps
+        <| statusDto.NumeroLote
+        <| statusDto.NumeroProtocolo
+        <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
+        <| toRpsDomain (statusDto.Rps |> Option.defaultValue defaultRps)
     | nameof Autorizada ->
         createStatusAutorizada
-            <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
-            <| toRpsDomain statusDto.Rps
-            <| statusDto.NumeroNota
+        <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
+        <| toRpsDomain statusDto.Rps
+        <| statusDto.NumeroNota
     | nameof SolicitandoCancelamento ->
         createStatusSolicitandoCancelamento
-            <| statusDto.NumeroNota
-            <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
-            <| toRpsDomain statusDto.Rps
-            <| statusDto.CodigoCancelamento
+        <| statusDto.NumeroNota
+        <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
+        <| toRpsDomain statusDto.Rps
+        <| statusDto.CodigoCancelamento
     | nameof Cancelada ->
         createStatusCancelada
-            <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
-            <| toRpsDomain statusDto.Rps
-            <| statusDto.NumeroNota
-            <| statusDto.CodigoCancelamento
-            <| statusDto.DataCancelamento.GetValueOrDefault DateTime.MinValue
-            
+        <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
+        <| toRpsDomain statusDto.Rps
+        <| statusDto.NumeroNota
+        <| statusDto.CodigoCancelamento
+        <| statusDto.DataCancelamento.GetValueOrDefault DateTime.MinValue
+
     | nameof ErroAutorizacao ->
         createStatusErroAutorizacao
-            <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
-            <| toRpsDomain statusDto.Rps
-            <| List.map toErroComunicacaoDomain statusDto.ErrosComunicacao
-            
+        <| statusDto.DataEmissao.GetValueOrDefault DateTime.MinValue
+        <| toRpsDomain statusDto.Rps
+        <| List.map toErroComunicacaoDomain statusDto.ErrosComunicacao
+
     | _ -> failwith "Status da nota inválido"

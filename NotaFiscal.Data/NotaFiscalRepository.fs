@@ -7,6 +7,7 @@ open NotaFiscal.Domain.NotaFiscalServico
 open NotaFiscal.Domain.Rop
 open NotaFiscal.Domain.DomainEvents
 
+
 module NotaFiscalRepository =
     let findNotaNotaById (collection: IMongoCollection<NotaFiscalServicoDto>) id =
         task {

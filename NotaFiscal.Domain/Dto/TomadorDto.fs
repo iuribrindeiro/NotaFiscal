@@ -1,8 +1,9 @@
 ﻿module NotaFiscal.Domain.Dto.TomadorDto
 
 open System
-open NotaFiscal.Domain.Endereco
-open NotaFiscal.Domain.NotaFiscalPrimitives
+open NotaFiscal.Domain.Entities.Endereco
+open NotaFiscal.Domain.Entities.Tomador.TomadorShared
+open NotaFiscal.Domain.Primitives
 open NotaFiscal.Domain.DomainEvents
 open NotaFiscal.Domain.Tomador
 open NotaFiscal.Domain.Rop
@@ -13,8 +14,8 @@ type TomadorDto =
       Cnpj: string
       InscricaoMunicipal: string
       Nome: string
-      Endereco: EnderecoDto
-      Contato: ContatoDto }
+      Endereco: EnderecoDto option
+      Contato: ContatoDto option }
 
 and EnderecoDto =
     { Rua: string

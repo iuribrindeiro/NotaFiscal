@@ -1,9 +1,9 @@
 ﻿module NotaFiscal.Domain.Dto.ServicoDto
 
 open System
-open NotaFiscal.Domain.NotaFiscalPrimitives
-open NotaFiscal.Domain.Servico
-open NotaFiscal.Domain.ValoresServico
+open NotaFiscal.Domain.Primitives
+open NotaFiscal.Domain.Entities.Servico
+open NotaFiscal.Domain.Entities.Servico.ValoresServico
 open NotaFiscal.Domain.Rop
 open NotaFiscal.Domain.DomainEvents
 
@@ -38,7 +38,7 @@ let mapValorIss (iss: Iss) =
         | Retido r -> Dinheiro.mapToValue r
         | NaoRetido r -> Dinheiro.mapToValue r
         
-let isIssRetido iss =
+let isIssRetido (iss: Iss) : bool =
     match iss with
     | Retido _ -> true
     | NaoRetido _ -> false

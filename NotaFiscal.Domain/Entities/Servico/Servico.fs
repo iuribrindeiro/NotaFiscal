@@ -1,8 +1,7 @@
-module NotaFiscal.Domain.Servico
+module NotaFiscal.Domain.Entities.Servico
 
-open NotaFiscal.Domain.NotaFiscalPrimitives
-open NotaFiscal.Domain.DomainEvents
-open NotaFiscal.Domain.ValoresServico
+open NotaFiscal.Domain
+open NotaFiscal.Domain.Entities.Servico.ValoresServico
 
 
 type Servico =

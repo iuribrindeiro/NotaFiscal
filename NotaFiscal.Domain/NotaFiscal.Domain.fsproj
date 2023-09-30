@@ -6,14 +6,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Rop.fs" />
-    <Compile Include="NotaFiscalPrimitives.fs" />
-    <Compile Include="Endereco.fs" />
-    <Compile Include="Tomador.fs" />
-    <Compile Include="Servico/ValoresServico.fs" />
-    <Compile Include="Servico/Servico.fs" />
-    <Compile Include="NotaFiscalStatus.fs" />
-    <Compile Include="NotaFiscalServico.fs" />
     <Compile Include="DomainEvents.fs" />
+    <Compile Include="Primitives.fs" />
+    <Compile Include="Entities\Endereco.fs" />
+    <Compile Include="Entities\Tomador\TomadorShared.fs" />
+    <Compile Include="Entities\Tomador\TomadorPessoaFisica.fs" />
+    <Compile Include="Entities\Tomador\TomadorPessoaJuridica.fs" />
+    <Compile Include="Entities\Tomador\TomadorEstrangeiro.fs" />
+    <Compile Include="Entities\Tomador\Tomador.fs" />
+    <Compile Include="Entities\NotaFiscalStatus.fs" />
+    <Compile Include="Entities\Servico\ValoresServico.fs" />
+    <Compile Include="Entities\Servico\Servico.fs" />
+    <Compile Include="Entities\NotaFiscalServico.fs" />
     <Compile Include="Dto\StatusDto.fs" />
     <Compile Include="Dto\TomadorDto.fs" />
     <Compile Include="Dto\ServicoDto.fs" />

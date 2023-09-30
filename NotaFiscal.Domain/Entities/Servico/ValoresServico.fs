@@ -1,7 +1,6 @@
-module NotaFiscal.Domain.ValoresServico
+module NotaFiscal.Domain.Entities.Servico.ValoresServico
 
-open NotaFiscal.Domain.NotaFiscalPrimitives
-open NotaFiscal.Domain.DomainEvents
+open NotaFiscal.Domain
 
 type Valores =
     { Servicos: Dinheiro
@@ -128,16 +127,16 @@ let createValoresServico
 
 
     createValoresServico'
-    <!> createValor valorServicos
-    <*> createValorDeducoes deducoes
-    <*> createValorPis pis
-    <*> createValorCofins cofins
-    <*> createValorInss inss
-    <*> createValorIr ir
-    <*> createValorCsll csll
-    <*> createValorOutrasRetencoes outrasRetencoes
-    <*> createValorIss valorIss issRetido
-    <*> createAliquota aliquota
-    <*> createValorDescontoIncondicionado descontoIncondicionado
-    <*> createValorDescontoCondicionado descontoCondicionado
+        <!> createValor valorServicos
+        <*> createValorDeducoes deducoes
+        <*> createValorPis pis
+        <*> createValorCofins cofins
+        <*> createValorInss inss
+        <*> createValorIr ir
+        <*> createValorCsll csll
+        <*> createValorOutrasRetencoes outrasRetencoes
+        <*> createValorIss valorIss issRetido
+        <*> createAliquota aliquota
+        <*> createValorDescontoIncondicionado descontoIncondicionado
+        <*> createValorDescontoCondicionado descontoCondicionado
     |> mapFailuresR (ValoresInvalidos >> ServicoInvalido)

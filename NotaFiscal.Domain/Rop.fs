@@ -1,4 +1,5 @@
-namespace NotaFiscal.Domain
+[<AutoOpen>]
+module NotaFiscal.Domain.Rop
 
 open System.Threading.Tasks
 open System
@@ -8,11 +9,9 @@ module Rop =
 
 
     type OperationResult<'TSuccess, 'TErrorMessage> =
-        //Mesmo que a operacao tenha resultado em um sucesso, a operacao anterior pode ter falhado,
-        //nesse caso, queremos preservar as mensagems de erros anteriores.
-        //Por isso temos 'TMessage list em sucesso
         | Success of 'TSuccess * 'TErrorMessage list
         | Failure of 'TErrorMessage list
+
 
 
     let succeed x = Success(x, [])
@@ -20,28 +19,24 @@ module Rop =
     let fail msg = Failure([ msg ])
 
     let failures msgs = Failure(msgs)
-    
+
     let teeR f result =
         match result with
         | Success(v, msgs) ->
             let result' = f v
 
             match result' with
-            | Success (v, r) -> Success(v, r @ msgs)
+            | Success(v, r) -> Success(v, r @ msgs)
             | Failure(msg') -> Failure(msg' @ msgs)
         | Failure(msgs) -> Failure(msgs)
 
-    let bindR
-        result
-        f
-        : OperationResult<'a, 'b>
-        =
+    let bindR result f : OperationResult<'a, 'b> =
         match result with
         | Success(v, msgs) ->
             let result' = f v
 
             match result' with
-            | Success (v, r) -> Success(v, r @ msgs)
+            | Success(v, r) -> Success(v, r @ msgs)
             | Failure(msg') -> Failure(msg' @ msgs)
         | Failure(msgs) -> Failure(msgs)
 
@@ -52,17 +47,51 @@ module Rop =
 
     let mapMsgR f result =
         match result with
-        | Success(v, msgs) -> Success(v, [f v] @ msgs)
+        | Success(v, msgs) -> Success(v, [ f v ] @ msgs)
         | Failure(msgs) -> Failure(msgs)
-    
-    let applyR f result =
-        match f, result with
-        | Success(f, msgs1), Success(x, msgs2) -> (f x, msgs1 @ msgs2) |> Success
+
+    let applyR
+        (resultOfFunc: OperationResult<('a -> 'b), 'c>)
+        (result: OperationResult<'a, 'c>)
+        : OperationResult<'b, 'c>
+        =
+        match resultOfFunc, result with
+        | Success(f, msgs1), Success(x, msgs2) ->
+            (f x, msgs1 @ msgs2) |> Success
         | Failure errs, Success(_, msgs)
         | Success(_, msgs), Failure errs -> errs @ msgs |> Failure
         | Failure errs1, Failure errs2 -> errs1 @ errs2 |> Failure
 
-    let mapFailuresR f result =
+    let rec traverseResultA
+        (f: 'a -> OperationResult<'b, 'c>)
+        (list: 'a list)
+        : OperationResult<'b list, 'c>
+        =
+        // define the applicative functions
+        let (<*>) = applyR
+
+        let retn =
+            function
+            | x -> Success(x, [])
+
+        // define a "cons" function
+        let cons head tail = head :: tail
+
+        // loop through the list
+        match list with
+        | [] ->
+            // if empty, lift [] to a Result
+            retn []
+        | head :: tail ->
+            // otherwise lift the head to a Result using f
+            // and cons it with the lifted version of the remaining list
+            retn cons <*> (f head) <*> (traverseResultA f tail)
+
+    let mapFailuresR
+        (f: 'a -> 'b)
+        (result: OperationResult<'c, 'a>)
+        : OperationResult<'c, 'b>
+        =
         match result with
         | Success(v, msg) ->
             let msgs = List.map f msg
@@ -71,15 +100,15 @@ module Rop =
         | Failure(msgs) ->
             let msgs = List.map f msgs
             Failure(msgs)
-            
-    let aggregateFailuresR results =
+
+    let aggregateFailuresR (results: OperationResult<'a, 'b> list) : 'b list =
         List.map
             (function
             | Success _ -> []
             | Failure err -> err)
             results
         |> List.concat
-        
+
     let strToOptionStr value =
         match value with
         | v when String.IsNullOrWhiteSpace v -> None
@@ -123,12 +152,12 @@ module Rop =
         match box value with
         | null -> succeed None
         | _ -> f value
-        
+
     let mapNullToR value f err =
         match box value with
         | null -> fail err
         | _ -> f value
-        
+
     type ResultBuilder() =
         member this.Return x = succeed x
         member this.Bind(xResult, f) = bindR xResult f
@@ -137,31 +166,34 @@ module Rop =
 
     module Option =
         let withDefaultNullable option =
-                option
-                |> Option.map Nullable
-                |> Option.defaultWith Nullable
-                
-    
+            option |> Option.map Nullable |> Option.defaultWith Nullable
+
+
     [<AutoOpen>]
     module AsyncRop =
-        let bindRAsync (result: OperationResult<'a,'b>) (f: 'a -> Task<OperationResult<'c,'b>>) =
+        let bindRAsync
+            (result: OperationResult<'a, 'b>)
+            (f: 'a -> Task<OperationResult<'c, 'b>>)
+            =
             match result with
             | Success(v, _) ->
                 task {
                     let! result' = f v
 
-                    return match result' with
-                            | Success (v, r) -> Success(v, r)
-                            | Failure(msg') -> Failure(msg')   
+                    return
+                        match result' with
+                        | Success(v, r) -> Success(v, r)
+                        | Failure(msg') -> Failure(msg')
                 }
             | Failure(msgs) -> Failure(msgs) |> Task.FromResult
-            
+
         let mapRAsync resultRAsync f =
             task {
                 let! resultR = resultRAsync
-                
+
                 return mapR f resultR
             }
+
         let checkRAsync resultR f =
             match resultR with
             | Success(v, msgs) ->
@@ -170,16 +202,19 @@ module Rop =
 
                     return
                         match result' with
-                        | Success (_, r) -> Success(v, r @ msgs)
-                        | Failure(msg') -> Failure(msg' @ msgs)   
+                        | Success(_, r) -> Success(v, r @ msgs)
+                        | Failure(msg') -> Failure(msg' @ msgs)
                 }
             | Failure(msgs) -> Failure(msgs) |> Task.FromResult
-            
-        let mapFailuresRAsync (f: 'a -> 'b) (result: Task<OperationResult<'c,'a>>): Task<OperationResult<'c,'b>> =
+
+        let mapFailuresRAsync
+            (f: 'a -> 'b)
+            (result: Task<OperationResult<'c, 'a>>)
+            : Task<OperationResult<'c, 'b>>
+            =
             task {
                 let! taskResult = result
-                return mapFailuresR f taskResult   
+                return mapFailuresR f taskResult
             }
-            
+
         let (>>=) = bindRAsync
-        

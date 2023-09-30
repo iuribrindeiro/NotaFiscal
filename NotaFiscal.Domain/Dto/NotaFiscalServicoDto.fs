@@ -2,10 +2,12 @@
 
 open System
 open NotaFiscal.Domain
-open NotaFiscal.Domain.DomainEvents
 
 type NotaFiscalServicoDto =
-    { Id: Guid; Tomador: TomadorDto.TomadorDto; Servico: ServicoDto.ServicoDto; Status: StatusDto.StatusDto }
+    { Id: Guid
+      Tomador: TomadorDto.TomadorDto
+      Servico: ServicoDto.ServicoDto
+      Status: StatusDto.StatusDto }
 let fromDomain (notaFiscal: NotaFiscalServico.NotaFiscalServico) : NotaFiscalServicoDto =
     { Id = notaFiscal.Id
       Tomador = TomadorDto.fromTomadorDomain notaFiscal.Tomador
